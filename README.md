@@ -6,6 +6,11 @@ constant time or not. The approach is easy: run it with different
 inputs, measure execution time and apply statistics.
 This tool is fairly small: the relevant code is around 350 lines.
 
+The approach is described in our paper:
+> Oscar Reparaz, Josep Balasch and Ingrid Verbauwhede  
+> [dude, is my code constant time?](https://eprint.iacr.org/2016/1123.pdf)  
+> DATE 2017
+
 Requirements
 ------------
 A C compiler.
@@ -127,8 +132,9 @@ Questions
    piece of code many times for each input and measures how much
    time it takes. If there is a statistical difference on the
    (average) time it takes to run with different inputs, the
-   implementation is deemed not time constant. For details, see
-   [the source](src/fixture.c).
+   implementation is deemed not time constant. For details, read
+   [our paper](https://eprint.iacr.org/2016/1123.pdf) or have a look
+   at [the source](src/fixture.c).
 
 **Is this a timing attack?**
    No. This is [leakage detection](http://saluc.engr.uconn.edu/refs/sidechannel/coron04statistics.pdf).
