@@ -65,12 +65,21 @@ static void prepare_percentiles(int64_t *ticks) {
   }
 }
 
-static void measure(int64_t *ticks, uint8_t *input_data) {
+static void measure(int64_t *exec_times, uint8_t *input_data) {
+  int64_t *ticks = calloc(number_measurements + 1, sizeof(int64_t));
+  if (!ticks) {
+    die();
+  }
+  
   for (size_t i = 0; i < number_measurements; i++) {
     ticks[i] = cpucycles();
     do_one_computation(input_data + i * chunk_size);
   }
   ticks[number_measurements] = cpucycles();
+  
+  differentiate(exec_times, ticks); // inplace
+  
+  free(ticks);
 }
 
 static void differentiate(int64_t *exec_times, int64_t *ticks) {
@@ -195,15 +204,11 @@ static void report(void) {
 
 static void doit(void) {
   // XXX move these callocs to parent
-  int64_t *ticks = calloc(number_measurements + 1, sizeof(int64_t));
   int64_t *exec_times = calloc(number_measurements, sizeof(int64_t));
   uint8_t *classes = calloc(number_measurements, sizeof(uint8_t));
   uint8_t *input_data =
       calloc(number_measurements * chunk_size, sizeof(uint8_t));
 
-  if (!ticks) {
-    die();
-  }
   if (!classes) {
     die();
   }
@@ -212,8 +217,7 @@ static void doit(void) {
   }
 
   prepare_inputs(input_data, classes);
-  measure(ticks, input_data);
-  differentiate(exec_times, ticks); // inplace
+  measure(exec_times, input_data);
 
   if (percentiles[number_percentiles - 1] == 0) {
     prepare_percentiles(exec_times);
@@ -222,7 +226,6 @@ static void doit(void) {
     report();
   }
 
-  free(ticks);
   free(classes);
   free(input_data);
 }
