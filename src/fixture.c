@@ -201,13 +201,7 @@ static void doit(void) {
   uint8_t *input_data =
       calloc(number_measurements * chunk_size, sizeof(uint8_t));
 
-  if (!ticks) {
-    die();
-  }
-  if (!classes) {
-    die();
-  }
-  if (!input_data) {
+  if (!ticks || !exec_times || !classes || !input_data) {
     die();
   }
 
@@ -223,6 +217,7 @@ static void doit(void) {
   report();
 
   free(ticks);
+  free(exec_times);
   free(classes);
   free(input_data);
 }
