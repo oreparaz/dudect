@@ -215,12 +215,12 @@ static void doit(void) {
   measure(ticks, input_data);
   differentiate(exec_times, ticks); // inplace
 
+  // we compute the percentiles only if they are not filled yet
   if (percentiles[number_percentiles - 1] == 0) {
     prepare_percentiles(exec_times);
-  } else {
-    update_statistics(exec_times, classes);
-    report();
   }
+  update_statistics(exec_times, classes);
+  report();
 
   free(ticks);
   free(classes);
