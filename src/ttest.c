@@ -24,11 +24,13 @@ void t_push(t_ctx *ctx, double x, uint8_t class) {
   // see Knuth Vol 2
   double delta = x - ctx->mean[class];
   ctx->mean[class] = ctx->mean[class] + delta / ctx->n[class];
+  // note this is not yet unbiased
   ctx->m2[class] = ctx->m2[class] + delta * (x - ctx->mean[class]);
 }
 
 double t_compute(t_ctx *ctx) {
   double var[2] = {0.0, 0.0};
+  // to obtain the sample variance, we unbiase:
   var[0] = ctx->m2[0] / (ctx->n[0] - 1);
   var[1] = ctx->m2[1] / (ctx->n[1] - 1);
   double num = (ctx->mean[0] - ctx->mean[1]);
