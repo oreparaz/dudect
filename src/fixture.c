@@ -157,7 +157,7 @@ static void report(void) {
   int mt = max_test();
   double max_t = fabs(t_compute(t[mt]));
   double number_traces_max_t = t[mt]->n[0] +  t[mt]->n[1];
-  double max_tau = max_t / number_traces_max_t;
+  double max_tau = max_t / sqrt(number_traces_max_t);
 
   printf("meas: %7.2lf M, ", (number_traces_max_t / 1e6));
   if (number_traces_max_t < enough_measurements) {
@@ -167,7 +167,7 @@ static void report(void) {
 
   /*
    * max_t: the t statistic value
-   * max_tau: a t value normalized by number of measurements.
+   * max_tau: a t value normalized by sqrt(number of measurements).
    *          this way we can compare max_tau taken with different
    *          number of measurements. This is sort of "distance
    *          between distributions", independent of number of
