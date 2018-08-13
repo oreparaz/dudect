@@ -1,0 +1,5 @@
+*.o
+*.so
+dudect_*
+*.exe
+a.out
