@@ -13,7 +13,8 @@ dut/aesbitsliced/consts_aes128ctr.o \
 dut/aesbitsliced/int128_aes128ctr.o \
 dut/aesbitsliced/stream_aes128ctr.o \
 dut/aesbitsliced/xor_afternm_aes128ctr.o
-OBJS_GO = dut/go/dut_go.so
+SHRDOBJ_GO = dut/go/dut_go.so
+SHRDOBJ_GO_SRC := $(shell find dut/go -type f -name '*.go')
 CC=clang
 OPTIMIZATION=-O2
 #CFLAGS	= -Weverything -O0 -fsanitize=memory -fno-omit-frame-pointer -g 
@@ -43,14 +44,14 @@ dut_donna: $(OBJS) $(OBJS_DONNA) dut/donna/dut_donna.c
 dut_donnabad: $(OBJS) $(OBJS_DONNABAD) dut/donnabad/dut_donnabad.c
 	$(CC) $(LDFLAGS) $(INCS) -o dudect_donnabad_$(OPTIMIZATION) dut/donnabad/$@.c $(OBJS) $(OBJS_DONNABAD) $(LIBS)
 
-dut_go: $(OBJS) $(OBJS_GO) dut/go/dut_go.c
-	$(CC) $(LDFLAGS) $(INCS) -o dudect_go_$(OPTIMIZATION) dut/go/$@.c $(OBJS) $(OBJS_GO) $(LIBS)
+dut_go: $(OBJS) $(SHRDOBJ_GO) dut/go/dut_go.c
+	$(CC) $(LDFLAGS) $(INCS) -o dudect_go_$(OPTIMIZATION) dut/go/$@.c $(OBJS) $(SHRDOBJ_GO) $(LIBS)
 
-dut/go/%.so: dut/go/%.go
-	go build -o $@ -buildmode=c-shared $<
+$(SHRDOBJ_GO): $(SHRDOBJ_GO_SRC)
+	go build -o $@ -buildmode=c-shared $(SHRDOBJ_GO_SRC)
 
 .c.o:
 	$(CC) $(CFLAGS) $(INCS) -c $< -o $@
 
 clean:
-	rm -f $(OBJS) $(OBJS_AES32) $(OBJS_AESBITSLICED) $(OBJS_DONNA) $(OBJS_DONNABAD) $(OBJS_GO) dudect_* *.exe a.out
+	rm -f $(OBJS) $(OBJS_AES32) $(OBJS_AESBITSLICED) $(OBJS_DONNA) $(OBJS_DONNABAD) $(SHRDOBJ_GO) dudect_* *.exe a.out

@@ -17,13 +17,9 @@ typedef struct { const char *p; ptrdiff_t n; } _GoString_;
 /* Start of preamble from import "C" comments.  */
 
 
-#line 3 "/home/ansemjo/go/src/github.com/ansemjo/aenker/dudect/dut/go/dut_go.go"
-
-#include <stdlib.h>
-#include <stdint.h>
-#include <stdio.h>
-#include <string.h>
-
+#line 3 "/home/ansemjo/go/src/github.com/ansemjo/dudect/dut/go/dut_go.go"
+ #include <stdlib.h>
+ #include <stdint.h>
 
 #line 1 "cgo-generated-wrapper"
 
