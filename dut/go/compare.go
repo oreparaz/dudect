@@ -1,5 +1,7 @@
 package main
 
+import "crypto/subtle"
+
 // prepare byte slices .. some with zeroes, some with random data
 func prepareData(data *[][]byte, classes *[]byte) {
 
@@ -15,19 +17,18 @@ func prepareData(data *[][]byte, classes *[]byte) {
 // do work, compare to byte slices
 func comparebyteslices(a, b []byte) int {
 
-	var comp int
+	// probably not constant time
+	//return bytes.Compare(a, b)
 
-	//bytes.Compare(secret, indata[idx])
-	//comp := subtle.ConstantTimeCompare(secret, indata[idx])
+	// should be constant time
+	return subtle.ConstantTimeCompare(a, b)
 
 	// very much not constant time
-	for i := range a {
-		if a[i] != b[i] {
-			comp = 1
-			break
-		}
-	}
-
-	return comp
+	// for i := range a {
+	// 	if a[i] != b[i] {
+	// 		return 1
+	// 	}
+	// }
+	// return
 
 }
