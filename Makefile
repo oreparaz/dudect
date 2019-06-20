@@ -12,7 +12,11 @@ dut/aesbitsliced/consts_aes128ctr.o \
 dut/aesbitsliced/int128_aes128ctr.o \
 dut/aesbitsliced/stream_aes128ctr.o \
 dut/aesbitsliced/xor_afternm_aes128ctr.o
-CC=clang
+ifeq ($(CXX),g++)
+	CC=gcc
+else ifeq ($(CXX),clang)
+	CC=clang
+endif
 OPTIMIZATION=-O2
 #CFLAGS	= -Weverything -O0 -fsanitize=memory -fno-omit-frame-pointer -g 
 CFLAGS	= $(OPTIMIZATION)
