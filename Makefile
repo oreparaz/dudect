@@ -14,12 +14,12 @@ dut/aesbitsliced/stream_aes128ctr.o \
 dut/aesbitsliced/xor_afternm_aes128ctr.o
 # CC=clang
 OPTIMIZATION=-O2
-#CFLAGS	= -Weverything -O0 -fsanitize=memory -fno-omit-frame-pointer -g 
-CFLAGS	= $(OPTIMIZATION)
+#CFLAGS	= -Weverything -O0 -fsanitize=memory -fno-omit-frame-pointer -g -std=c11
+CFLAGS	= $(OPTIMIZATION) -std=c11
 LIBS	= -lm
 #LDFLAGS	= -fsanitize=memory -fno-omit-frame-pointer -g 
-#LDFLAGS = -Weverything $(OPTIMIZATION)
-LDFLAGS = $(OPTIMIZATION)
+#LDFLAGS = -Weverything $(OPTIMIZATION) -std=c11
+LDFLAGS = $(OPTIMIZATION) -std=c11
 
 INCS	= -Iinc/
 
