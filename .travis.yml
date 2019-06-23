@@ -1,0 +1,12 @@
+os:
+ - osx
+ - linux
+
+language: c
+
+compiler:
+ - clang
+ - gcc
+
+script:
+ - make
