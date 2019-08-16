@@ -1,6 +1,6 @@
 typedef struct {
   double mean[2];
-  double m2[2];
+  double m2[2]; // m2, once divided by n-1 provides the sample variance
   double n[2];
 } t_ctx;
 
