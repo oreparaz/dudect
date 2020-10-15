@@ -107,11 +107,6 @@ you are done.
 Examples
 --------
 
-* `dudect_cmpmemcmp` Variable-time memory comparison function
-  based on stock `memcmp()`.
-
-* `dudect_cmpct` Purported time-constant memory comparison.
- 
 * `dudect_aes32` T-tables implementation of the AES.
   A nice example of variable-time crypto implementation.
 
