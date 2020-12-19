@@ -118,6 +118,29 @@ Examples
 
 * `dudect_donnabad` Variant with a glaring timing leak.
 
+Checking your code for constant time
+------------------------------------
+
+`dudect` is distributed as a single-file library for easy building.
+Steps:
+* Copy `dudect.h` to your include directories
+* Add `#include "dudect.h"` from your source files.
+* See [this minimal example](examples/simple/example.c) for a fully
+contained example. You'll need to write the following functions:
+   - `do_one_computation()`, 
+   - `prepare_inputs()` and
+   - call `dudect_main()` from your main function
+
+Further notes
+-------------
+
+Whether some piece of code executes in constant time depends on lots of
+factors, such as: how the code is written, compiler version,
+compiler flags, architecture, microcode version, phase of the moon,
+etc. To see how different compiler optimization levels affect this,
+compare the artifact `dudect_simple_O0` (no optimization, runs in variable
+time in a 2019 MacBook) vs `dudect_simple_O2` (optimized, can't
+detect leakage with a few million measurements on same platform).
 
 Questions
 ---------
