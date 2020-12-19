@@ -19,7 +19,7 @@ LIBS	= -lm
 #LDFLAGS = -Weverything $(OPTIMIZATION) -std=c11
 LDFLAGS = $(OPTIMIZATION) -std=c11
 
-INCS	= -Iinc/ -Isrc/
+INCS	= -Isrc/
 
 dut_aes32: $(OBJS_AES32) examples/aes32/dut_aes32.c
 	$(CC) $(LDFLAGS) $(INCS) -o dudect_aes32_$(OPTIMIZATION) examples/aes32/$@.c $(OBJS_AES32) $(LIBS)
