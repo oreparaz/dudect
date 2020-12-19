@@ -37,7 +37,11 @@ void prepare_inputs(dudect_config_t *c, uint8_t *input_data, uint8_t *classes) {
 int run_test(void) {
   dudect_config_t config = {
       .chunk_size = SECRET_LEN_BYTES,
+      #ifdef MEASUREMENTS_PER_CHUNK
+      .number_measurements = MEASUREMENTS_PER_CHUNK,
+      #else
       .number_measurements = 500,
+      #endif
   };
   dudect_ctx_t ctx;
 
