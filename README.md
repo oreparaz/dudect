@@ -118,6 +118,18 @@ Examples
 
 * `dudect_donnabad` Variant with a glaring timing leak.
 
+Checking your code for constant time
+------------------------------------
+
+`dudect` is distributed as a single-file library for easy building.
+Steps:
+* Copy `dudect.h` to your include directories
+* Add `#include "dudect.h"` from your source files.
+* See [this minimal example](examples/simple/example.c) for a fully
+contained example. You'll need to write the following functions:
+   - `do_one_computation()`, 
+   - `prepare_inputs()` and
+   - call `dudect_main()` from your main function
 
 Questions
 ---------

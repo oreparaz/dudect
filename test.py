@@ -6,6 +6,7 @@ _TIMEOUT=60
 _EXPECTED_TO_LEAK = [
     "dudect_aes32_-O2",
     "dudect_donnabad_-O2",
+    "dudect_simple_O0",
     ]
 
 _EXPECTED_NOT_TO_LEAK = [
