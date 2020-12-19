@@ -34,6 +34,8 @@ dut_donnabad: $(OBJS_DONNABAD) examples/donnabad/dut_donnabad.c
 	$(CC) $(LDFLAGS) $(INCS) -o dudect_donnabad_$(OPTIMIZATION) examples/donnabad/$@.c $(OBJS_DONNABAD) $(LIBS)
 
 dut_simple: examples/simple/example.c
+	# higher compiler optimization levels can make this constant time
+	# do not optimize
 	$(CC) -O0 $(INCS) -o dudect_simple_O0 examples/simple/example.c $(LIBS)
 
 .c.o:
