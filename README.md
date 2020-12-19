@@ -131,6 +131,17 @@ contained example. You'll need to write the following functions:
    - `prepare_inputs()` and
    - call `dudect_main()` from your main function
 
+Further notes
+-------------
+
+Whether some piece of code executes in constant time depends on lots of
+factors, such as: how the code is written, compiler version,
+compiler flags, architecture, microcode version, phase of the moon,
+etc. To see how different compiler optimization levels affect this,
+compare the artifact `dudect_simple_O0` (no optimization, runs in variable
+time in a 2019 MacBook) vs `dudect_simple_O2` (optimized, can't
+detect leakage with a few million measurements on same platform).
+
 Questions
 ---------
 

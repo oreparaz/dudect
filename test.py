@@ -11,7 +11,8 @@ _EXPECTED_TO_LEAK = [
 
 _EXPECTED_NOT_TO_LEAK = [
     "dudect_donna_-O2",
-    "dudect_aesbitsliced_-O2"
+    "dudect_aesbitsliced_-O2",
+    "dudect_simple_O2",
     ]
 
 def check(name, expected_to_leak):
