@@ -279,7 +279,6 @@ static void measure(dudect_ctx_t *ctx) {
     ctx->ticks[i] = cpucycles();
     do_one_computation(ctx->input_data + i * ctx->config->chunk_size);
   }
-  ctx->ticks[ctx->config->number_measurements] = cpucycles();
 
   for (size_t i = 0; i < ctx->config->number_measurements-1; i++) {
     ctx->exec_times[i] = ctx->ticks[i+1] - ctx->ticks[i];
@@ -455,10 +454,15 @@ int dudect_init(dudect_ctx_t *ctx, dudect_config_t *conf)
 
 int dudect_free(dudect_ctx_t *ctx)
 {
+  for (int i = 0; i < DUDECT_TESTS; i++) {
+    free(ctx->ttest_ctxs[i]);
+  }
+  free(ctx->percentiles);
   free(ctx->input_data);
   free(ctx->classes);
   free(ctx->exec_times);
   free(ctx->ticks);
+  free(ctx->config);
   return 0;
 }
 
