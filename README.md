@@ -180,6 +180,23 @@ Questions
 
 **Warning: experimental quality software.**
 
+Credits
+-------
+
+The following people have contributed to `dudect` through code, bug reports, issues or ideas:
+
+* Ján Jančár
+* Yolan Romailler
+* greyspectrum
+* dinosaure
+* matbok
+* RashidAlsuwaidi
+
+The approach is described in this paper
+> Oscar Reparaz, Josep Balasch and Ingrid Verbauwhede
+> [dude, is my code constant time?](https://eprint.iacr.org/2016/1123.pdf)
+> DATE 2017
+
 Contact
 -------
 Oscar Reparaz ([COSIC/KU Leuven](http://cosic.be))
