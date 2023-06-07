@@ -191,6 +191,7 @@ The following people have contributed to `dudect` through code, bug reports, iss
 * dinosaure
 * matbok
 * RashidAlsuwaidi
+* paul90317
 
 The approach is described in this paper
 > Oscar Reparaz, Josep Balasch and Ingrid Verbauwhede

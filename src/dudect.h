@@ -195,12 +195,11 @@ static void t_init(ttest_ctx_t *ctx) {
 
 static int cmp(const int64_t *a, const int64_t *b) { return (int)(*a - *b); }
 
-static int64_t percentile(int64_t *a, double which, size_t size) {
-  qsort(a, size, sizeof(int64_t), (int (*)(const void *, const void *))cmp);
+static int64_t percentile(int64_t *a_sorted, double which, size_t size) {
   size_t array_position = (size_t)((double)size * (double)which);
   assert(array_position >= 0);
   assert(array_position < size);
-  return a[array_position];
+  return a_sorted[array_position];
 }
 
 /*
@@ -210,6 +209,7 @@ static int64_t percentile(int64_t *a, double which, size_t size) {
  than that.
 */
 static void prepare_percentiles(dudect_ctx_t *ctx) {
+  qsort(ctx->exec_times, ctx->config->number_measurements, sizeof(int64_t), (int (*)(const void *, const void *))cmp);
   for (size_t i = 0; i < DUDECT_NUMBER_PERCENTILES; i++) {
     ctx->percentiles[i] = percentile(
         ctx->exec_times, 1 - (pow(0.5, 10 * (double)(i + 1) / DUDECT_NUMBER_PERCENTILES)),
