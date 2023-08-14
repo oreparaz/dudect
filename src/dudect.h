@@ -14,9 +14,9 @@
  different inputs and performs a Welch's t-test to determine if the function
  runs in constant time or not. This is essentially leakage detection, and
  not a timing attack.
- 
+
  Notes:
-  
+
    - the execution time distribution tends to be skewed towards large
      timings, leading to a fat right tail. Most executions take little time,
      some of them take a lot. We try to speed up the test process by
@@ -24,17 +24,17 @@
      those measurements could correspond to the execution being interrupted
      by the OS.) Setting a threshold value for this is not obvious; we just
      keep the x% percent fastest timings, and repeat for several values of x.
-  
-   - the previous observation is highly heuristic. We also keep the uncropped 
+
+   - the previous observation is highly heuristic. We also keep the uncropped
      measurement time and do a t-test on that.
- 
+
    - we also test for unequal variances (second order test), but this is
      probably redundant since we're doing as well a t-test on cropped
      measurements (non-linear transform)
- 
+
    - as long as any of the different test fails, the code will be deemed
      variable time.
- 
+
  LICENSE:
 
     This is free and unencumbered software released into the public domain.
@@ -73,12 +73,12 @@
 #define DUDECT_VISIBILITY extern
 #endif
 
-/* 
+/*
    The interface of dudect begins here, to be compiled only if DUDECT_IMPLEMENTATION is not defined.
    In a multi-file library what follows would be the public-facing dudect.h
 */
 
-#define DUDECT_ENOUGH_MEASUREMENTS (10000) /* do not draw any conclusion before we reach this many measurements */ 
+#define DUDECT_ENOUGH_MEASUREMENTS (10000) /* do not draw any conclusion before we reach this many measurements */
 #define DUDECT_NUMBER_PERCENTILES  (100)
 
 /* perform this many tests in total:
@@ -156,23 +156,23 @@ extern uint8_t do_one_computation(uint8_t *data);
 
 /*
   Online Welch's t-test
- 
+
   Tests whether two populations have same mean.
   This is basically Student's t-test for unequal
   variances and unequal sample sizes.
- 
+
   see https://en.wikipedia.org/wiki/Welch%27s_t-test
  */
-static void t_push(ttest_ctx_t *ctx, double x, uint8_t class) {
-  assert(class == 0 || class == 1);
-  ctx->n[class]++;
+static void t_push(ttest_ctx_t *ctx, double x, uint8_t clazz) {
+  assert(clazz == 0 || clazz == 1);
+  ctx->n[clazz]++;
   /*
    estimate variance on the fly as per the Welford method.
    this gives good numerical stability, see Knuth's TAOCP vol 2
   */
-  double delta = x - ctx->mean[class];
-  ctx->mean[class] = ctx->mean[class] + delta / ctx->n[class];
-  ctx->m2[class] = ctx->m2[class] + delta * (x - ctx->mean[class]);
+  double delta = x - ctx->mean[clazz];
+  ctx->mean[clazz] = ctx->mean[clazz] + delta / ctx->n[clazz];
+  ctx->m2[clazz] = ctx->m2[clazz] + delta * (x - ctx->mean[clazz]);
 }
 
 static double t_compute(ttest_ctx_t *ctx) {
@@ -186,10 +186,10 @@ static double t_compute(ttest_ctx_t *ctx) {
 }
 
 static void t_init(ttest_ctx_t *ctx) {
-  for (int class = 0; class < 2; class ++) {
-    ctx->mean[class] = 0.0;
-    ctx->m2[class] = 0.0;
-    ctx->n[class] = 0.0;
+  for (int clazz = 0; clazz < 2; clazz ++) {
+    ctx->mean[clazz] = 0.0;
+    ctx->m2[clazz] = 0.0;
+    ctx->n[clazz] = 0.0;
   }
 }
 
@@ -363,7 +363,7 @@ static dudect_state_t report(dudect_ctx_t *ctx) {
   double max_tau = max_t / sqrt(number_traces_max_t);
 
   // print the number of measurements of the test that yielded max t.
-  // sometimes you can see this number go down - this can be confusing 
+  // sometimes you can see this number go down - this can be confusing
   // but can happen (different test)
   printf("meas: %7.2lf M, ", (number_traces_max_t / 1e6));
   if (number_traces_max_t < DUDECT_ENOUGH_MEASUREMENTS) {
@@ -373,7 +373,7 @@ static dudect_state_t report(dudect_ctx_t *ctx) {
 
   /*
    * We report the following statistics:
-   * 
+   *
    * max_t: the t value
    * max_tau: a t value normalized by sqrt(number of measurements).
    *          this way we can compare max_tau taken with different
@@ -383,10 +383,10 @@ static dudect_state_t report(dudect_ctx_t *ctx) {
    * (5/tau)^2: how many measurements we would need to barely
    *            detect the leak, if present. "barely detect the
    *            leak" here means have a t value greater than 5.
-   * 
+   *
    * The first metric is standard; the other two aren't (but
    * pretty sensible imho)
-   */          
+   */
   printf("max t: %+7.2f, max tau: %.2e, (5/tau)^2: %.2e.",
     max_t,
     max_tau,
@@ -427,21 +427,21 @@ dudect_state_t dudect_main(dudect_ctx_t *ctx) {
 
 int dudect_init(dudect_ctx_t *ctx, dudect_config_t *conf)
 {
-  ctx->config = calloc(1, sizeof(*conf));
+  ctx->config = (dudect_config_t*) calloc(1, sizeof(*conf));
   ctx->config->number_measurements = conf->number_measurements;
   ctx->config->chunk_size = conf->chunk_size;
-  ctx->ticks = calloc(ctx->config->number_measurements, sizeof(int64_t));
-  ctx->exec_times = calloc(ctx->config->number_measurements, sizeof(int64_t));
-  ctx->classes = calloc(ctx->config->number_measurements, sizeof(uint8_t));
-  ctx->input_data = calloc(ctx->config->number_measurements * ctx->config->chunk_size, sizeof(uint8_t)); 
+  ctx->ticks = (int64_t*) calloc(ctx->config->number_measurements, sizeof(int64_t));
+  ctx->exec_times = (int64_t*) calloc(ctx->config->number_measurements, sizeof(int64_t));
+  ctx->classes = (uint8_t*) calloc(ctx->config->number_measurements, sizeof(uint8_t));
+  ctx->input_data = (uint8_t*) calloc(ctx->config->number_measurements * ctx->config->chunk_size, sizeof(uint8_t));
 
   for (int i = 0; i < DUDECT_TESTS; i++) {
     ctx->ttest_ctxs[i] = (ttest_ctx_t *)calloc(1, sizeof(ttest_ctx_t));
     assert(ctx->ttest_ctxs[i]);
     t_init(ctx->ttest_ctxs[i]);
   }
-  
-  ctx->percentiles = calloc(DUDECT_NUMBER_PERCENTILES, sizeof(int64_t));
+
+  ctx->percentiles = (int64_t*) calloc(DUDECT_NUMBER_PERCENTILES, sizeof(int64_t));
 
   assert(ctx->ticks);
   assert(ctx->exec_times);
