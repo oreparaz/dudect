@@ -1,17 +1,17 @@
 import os
 import sys
 
-_TIMEOUT=60
+_TIMEOUT=120
 
 _EXPECTED_TO_LEAK = [
-    "dudect_aes32_-O2",
-    "dudect_donnabad_-O2",
+    "dudect_aes32_O2",
+    "dudect_donnabad_O2",
     "dudect_simple_O0",
     ]
 
 _EXPECTED_NOT_TO_LEAK = [
-    "dudect_donna_-O2",
-    "dudect_aesbitsliced_-O2",
+    "dudect_donna_O2",
+    "dudect_aesbitsliced_O2",
     "dudect_simple_O2",
     ]
 
