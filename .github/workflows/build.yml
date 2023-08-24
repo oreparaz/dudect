@@ -1,0 +1,33 @@
+name: Presubmit Checks
+
+on: [push, pull_request, workflow_dispatch]
+
+jobs:
+  linux-gcc:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        architecture: [32, 64]
+    steps:
+      - uses: actions/checkout@v3
+      - name: Build
+        run: sudo apt-get install gcc-multilib g++-multilib && make -j
+
+  macos:
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v3
+      - name: Build
+        run: make
+
+  test:
+    # running dudect in a virtualized environment is likely to give poor results...
+    name: smoke test
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - name: Build
+        run: sudo apt-get install gcc-multilib g++-multilib && make -j
+      - name: Run tests
+        run: python3 test.py
+
