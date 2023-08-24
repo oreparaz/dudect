@@ -59,6 +59,11 @@
     For more information, please refer to <http://unlicense.org>
 */
 
+/* Used for improved C++ compatibility */
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 #ifndef DUDECT_IMPLEMENTATION
 
 #ifndef DUDECT_H_INCLUDED
@@ -467,3 +472,7 @@ int dudect_free(dudect_ctx_t *ctx)
 }
 
 #endif /* DUDECT_IMPLEMENTATION */
+
+#ifdef __cplusplus
+}  /* extern "C" */
+#endif
