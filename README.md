@@ -118,6 +118,8 @@ Examples
 
 * `dudect_donnabad` Variant with a glaring timing leak.
 
+* For an example on how to use dudect in a C++ code base, see https://github.com/oreparaz/dudect/pull/23 .
+
 Checking your code for constant time
 ------------------------------------
 
@@ -192,6 +194,7 @@ The following people have contributed to `dudect` through code, bug reports, iss
 * matbok
 * RashidAlsuwaidi
 * paul90317
+* Fabian Albert (https://github.com/FAlbertDev)
 
 The approach is described in this paper
 > Oscar Reparaz, Josep Balasch and Ingrid Verbauwhede
