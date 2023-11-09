@@ -346,11 +346,11 @@ static dudect_state_t report(dudect_ctx_t *ctx) {
   }
 
   printf("t-test on raw measurements\n");
-  wrap_report(ctx->ttest_ctxs[0]);
+  report_test(ctx->ttest_ctxs[0]);
 
   printf("t-test on cropped measurements\n");
   for (size_t i = 0; i < DUDECT_NUMBER_PERCENTILES; i++) {
-    wrap_report(ctx->ttest_ctxs[i + 1]);
+    report_test(ctx->ttest_ctxs[i + 1]);
   }
 
   printf("t-test for second order leakage\n");
