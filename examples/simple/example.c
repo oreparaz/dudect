@@ -10,7 +10,7 @@ int check_tag(uint8_t *x, uint8_t *y, size_t len) {
   return memcmp(x, y, len);
 }
 
-#define SECRET_LEN_BYTES (16)
+#define SECRET_LEN_BYTES (512)
 
 uint8_t secret[SECRET_LEN_BYTES] = {0, 1, 2, 3, 4, 5, 6, 42};
 
