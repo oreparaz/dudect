@@ -71,6 +71,8 @@ extern "C" {
 
 #include <stddef.h>
 #include <stdint.h>
+#include <emmintrin.h>
+#include <x86intrin.h>
 
 #ifdef DUDECT_VISIBLITY_STATIC
 #define DUDECT_VISIBILITY static
@@ -262,16 +264,19 @@ uint8_t randombit(void) {
 }
 
 /*
- Intel actually recommends calling CPUID to serialize the execution flow
- and reduce variance in measurement due to out-of-order execution.
- We don't do that here yet.
- see §3.2.1 http://www.intel.com/content/www/us/en/embedded/training/ia-32-ia-64-benchmark-code-execution-paper.html
-*/
-static int64_t cpucycles(void) {
-  unsigned int hi, lo;
+ Returns current CPU tick count from *T*ime *S*tamp *C*ounter.
 
-  __asm__ volatile("rdtsc\n\t" : "=a"(lo), "=d"(hi));
-  return ((int64_t)lo) | (((int64_t)hi) << 32);
+ To enforce CPU to issue RDTSC instruction where we want it to, we put a `mfence` instruction before
+ issuing `rdtsc`, which should make all memory load/ store operations, prior to RDTSC, globally visible.
+
+ See RDTSC documentation @ https://www.intel.com/content/www/us/en/docs/intrinsics-guide/index.htm#text=rdtsc&ig_expand=4395,5273
+ See MFENCE documentation @ https://www.intel.com/content/www/us/en/docs/intrinsics-guide/index.htm#text=mfence&ig_expand=4395,5273,4395
+
+ Also see https://stackoverflow.com/a/12634857
+*/
+static inline int64_t cpucycles(void) {
+  _mm_mfence();
+  return (int64_t)__rdtsc();
 }
 
 // threshold values for Welch's t-test
