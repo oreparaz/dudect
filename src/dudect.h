@@ -204,7 +204,6 @@ static int cmp(const int64_t *a, const int64_t *b) { return (int)(*a - *b); }
 
 static int64_t percentile(int64_t *a_sorted, double which, size_t size) {
   size_t array_position = (size_t)((double)size * (double)which);
-  assert(array_position >= 0);
   assert(array_position < size);
   return a_sorted[array_position];
 }
