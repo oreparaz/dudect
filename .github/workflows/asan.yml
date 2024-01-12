@@ -9,7 +9,7 @@ jobs:
       CC: gcc
     steps:
       - uses: actions/checkout@v3
-      - run: sudo apt install -y make gcc
+      - run: sudo apt-get update && sudo apt install -y make gcc
       - run: gcc --version
       - run: make CFLAGS="-g -fno-omit-frame-pointer -fsanitize=address" LDFLAGS="-fsanitize=address"
       # if timeouts (return code 124), consider it a success
