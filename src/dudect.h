@@ -268,6 +268,7 @@ uint8_t randombit(void) {
  To enforce CPU to issue RDTSC instruction where we want it to, we put a `mfence` instruction before
  issuing `rdtsc`, which should make all memory load/ store operations, prior to RDTSC, globally visible.
 
+ See https://github.com/oreparaz/dudect/issues/32
  See RDTSC documentation @ https://www.intel.com/content/www/us/en/docs/intrinsics-guide/index.htm#text=rdtsc&ig_expand=4395,5273
  See MFENCE documentation @ https://www.intel.com/content/www/us/en/docs/intrinsics-guide/index.htm#text=mfence&ig_expand=4395,5273,4395
 
