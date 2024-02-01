@@ -61,7 +61,8 @@
 
 /* Used for improved C++ compatibility */
 #ifdef __cplusplus
-extern "C" {
+extern "C"
+{
 #endif
 
 #ifndef DUDECT_IMPLEMENTATION
@@ -69,9 +70,9 @@ extern "C" {
 #ifndef DUDECT_H_INCLUDED
 #define DUDECT_H_INCLUDED
 
+#include <emmintrin.h>
 #include <stddef.h>
 #include <stdint.h>
-#include <emmintrin.h>
 #include <x86intrin.h>
 
 #ifdef DUDECT_VISIBLITY_STATIC
@@ -80,65 +81,74 @@ extern "C" {
 #define DUDECT_VISIBILITY extern
 #endif
 
-/*
-   The interface of dudect begins here, to be compiled only if DUDECT_IMPLEMENTATION is not defined.
-   In a multi-file library what follows would be the public-facing dudect.h
-*/
+  /*
+     The interface of dudect begins here, to be compiled only if
+     DUDECT_IMPLEMENTATION is not defined. In a multi-file library what follows
+     would be the public-facing dudect.h
+  */
 
-#define DUDECT_ENOUGH_MEASUREMENTS (10000) /* do not draw any conclusion before we reach this many measurements */
-#define DUDECT_NUMBER_PERCENTILES  (100)
+#define DUDECT_ENOUGH_MEASUREMENTS                                             \
+  (10000) /* do not draw any conclusion before we reach this many measurements \
+           */
+#define DUDECT_NUMBER_PERCENTILES (100)
 
 /* perform this many tests in total:
    - 1 first order uncropped test,
    - DUDECT_NUMBER_PERCENTILES tests
    - 1 second order test
 */
-#define DUDECT_TESTS (1+DUDECT_NUMBER_PERCENTILES+1)
+#define DUDECT_TESTS (1 + DUDECT_NUMBER_PERCENTILES + 1)
 
-typedef struct {
-  size_t chunk_size;
-  size_t number_measurements;
-} dudect_config_t;
+  typedef struct
+  {
+    size_t chunk_size;
+    size_t number_measurements;
+  } dudect_config_t;
 
-typedef struct {
-  double mean[2];
-  double m2[2];
-  double n[2];
-} ttest_ctx_t;
+  typedef struct
+  {
+    double mean[2];
+    double m2[2];
+    double n[2];
+  } ttest_ctx_t;
 
-typedef struct {
-  int64_t *ticks;
-  int64_t *exec_times;
-  uint8_t *input_data;
-  uint8_t *classes;
-  dudect_config_t *config;
-  ttest_ctx_t *ttest_ctxs[DUDECT_TESTS];
-  int64_t *percentiles;
-} dudect_ctx_t;
+  typedef struct
+  {
+    int64_t* ticks;
+    int64_t* exec_times;
+    uint8_t* input_data;
+    uint8_t* classes;
+    dudect_config_t* config;
+    ttest_ctx_t* ttest_ctxs[DUDECT_TESTS];
+    int64_t* percentiles;
+  } dudect_ctx_t;
 
-typedef enum {
-  DUDECT_LEAKAGE_FOUND=0,
-  DUDECT_NO_LEAKAGE_EVIDENCE_YET
-} dudect_state_t;
+  typedef enum
+  {
+    DUDECT_LEAKAGE_FOUND = 0,
+    DUDECT_NO_LEAKAGE_EVIDENCE_YET
+  } dudect_state_t;
 
-/* Public API */
+  /* Public API */
 
-DUDECT_VISIBILITY int dudect_init(dudect_ctx_t *ctx, dudect_config_t *conf);
-DUDECT_VISIBILITY dudect_state_t dudect_main(dudect_ctx_t *c);
-DUDECT_VISIBILITY int dudect_free(dudect_ctx_t *ctx);
-DUDECT_VISIBILITY void randombytes(uint8_t *x, size_t how_much);
-DUDECT_VISIBILITY uint8_t randombit(void);
+  DUDECT_VISIBILITY int dudect_init(dudect_ctx_t* ctx, dudect_config_t* conf);
+  DUDECT_VISIBILITY dudect_state_t dudect_main(dudect_ctx_t* c);
+  DUDECT_VISIBILITY int dudect_free(dudect_ctx_t* ctx);
+  DUDECT_VISIBILITY void randombytes(uint8_t* x, size_t how_much);
+  DUDECT_VISIBILITY uint8_t randombit(void);
 
 /* Public configuration */
 
 /* Implementation details */
 #include <inttypes.h>
-#include <stdint.h>
 #include <stddef.h>
+#include <stdint.h>
 
-// kill this
-extern void prepare_inputs(dudect_config_t *c, uint8_t *input_data, uint8_t *classes);
-extern uint8_t do_one_computation(uint8_t *data);
+  // kill this
+  extern void prepare_inputs(dudect_config_t* c,
+                             uint8_t* input_data,
+                             uint8_t* classes);
+  extern uint8_t do_one_computation(uint8_t* data);
 
 #endif /* DUDECT_H_INCLUDED */
 
@@ -148,7 +158,8 @@ extern uint8_t do_one_computation(uint8_t *data);
 #include "dudect.h"
 #define DUDECT_IMPLEMENTATION
 
-/* The implementation of dudect begins here. In a multi-file library what follows would be dudect.c */
+/* The implementation of dudect begins here. In a multi-file library what
+ * follows would be dudect.c */
 
 #define DUDECT_TRACE (0)
 
@@ -170,7 +181,9 @@ extern uint8_t do_one_computation(uint8_t *data);
 
   see https://en.wikipedia.org/wiki/Welch%27s_t-test
  */
-static void t_push(ttest_ctx_t *ctx, double x, uint8_t clazz) {
+static void
+t_push(ttest_ctx_t* ctx, double x, uint8_t clazz)
+{
   assert(clazz == 0 || clazz == 1);
   ctx->n[clazz]++;
   /*
@@ -182,8 +195,10 @@ static void t_push(ttest_ctx_t *ctx, double x, uint8_t clazz) {
   ctx->m2[clazz] = ctx->m2[clazz] + delta * (x - ctx->mean[clazz]);
 }
 
-static double t_compute(ttest_ctx_t *ctx) {
-  double var[2] = {0.0, 0.0};
+static double
+t_compute(ttest_ctx_t* ctx)
+{
+  double var[2] = { 0.0, 0.0 };
   var[0] = ctx->m2[0] / (ctx->n[0] - 1);
   var[1] = ctx->m2[1] / (ctx->n[1] - 1);
   double num = (ctx->mean[0] - ctx->mean[1]);
@@ -192,17 +207,25 @@ static double t_compute(ttest_ctx_t *ctx) {
   return t_value;
 }
 
-static void t_init(ttest_ctx_t *ctx) {
-  for (int clazz = 0; clazz < 2; clazz ++) {
+static void
+t_init(ttest_ctx_t* ctx)
+{
+  for (int clazz = 0; clazz < 2; clazz++) {
     ctx->mean[clazz] = 0.0;
     ctx->m2[clazz] = 0.0;
     ctx->n[clazz] = 0.0;
   }
 }
 
-static int cmp(const int64_t *a, const int64_t *b) { return (int)(*a - *b); }
+static int
+cmp(const int64_t* a, const int64_t* b)
+{
+  return (int)(*a - *b);
+}
 
-static int64_t percentile(int64_t *a_sorted, double which, size_t size) {
+static int64_t
+percentile(int64_t* a_sorted, double which, size_t size)
+{
   size_t array_position = (size_t)((double)size * (double)which);
   assert(array_position < size);
   return a_sorted[array_position];
@@ -214,17 +237,25 @@ static int64_t percentile(int64_t *a_sorted, double which, size_t size) {
  the measurements distribution, but there's not more science
  than that.
 */
-static void prepare_percentiles(dudect_ctx_t *ctx) {
-  qsort(ctx->exec_times, ctx->config->number_measurements, sizeof(int64_t), (int (*)(const void *, const void *))cmp);
+static void
+prepare_percentiles(dudect_ctx_t* ctx)
+{
+  qsort(ctx->exec_times,
+        ctx->config->number_measurements,
+        sizeof(int64_t),
+        (int (*)(const void*, const void*))cmp);
   for (size_t i = 0; i < DUDECT_NUMBER_PERCENTILES; i++) {
     ctx->percentiles[i] = percentile(
-        ctx->exec_times, 1 - (pow(0.5, 10 * (double)(i + 1) / DUDECT_NUMBER_PERCENTILES)),
-        ctx->config->number_measurements);
+      ctx->exec_times,
+      1 - (pow(0.5, 10 * (double)(i + 1) / DUDECT_NUMBER_PERCENTILES)),
+      ctx->config->number_measurements);
   }
 }
 
 /* this comes from ebacs */
-void randombytes(uint8_t *x, size_t how_much) {
+void
+randombytes(uint8_t* x, size_t how_much)
+{
   ssize_t i;
   static int fd = -1;
 
@@ -256,7 +287,9 @@ void randombytes(uint8_t *x, size_t how_much) {
   }
 }
 
-uint8_t randombit(void) {
+uint8_t
+randombit(void)
+{
   uint8_t ret = 0;
   randombytes(&ret, 1);
   return (ret & 1);
@@ -265,16 +298,21 @@ uint8_t randombit(void) {
 /*
  Returns current CPU tick count from *T*ime *S*tamp *C*ounter.
 
- To enforce CPU to issue RDTSC instruction where we want it to, we put a `mfence` instruction before
- issuing `rdtsc`, which should make all memory load/ store operations, prior to RDTSC, globally visible.
+ To enforce CPU to issue RDTSC instruction where we want it to, we put a
+ `mfence` instruction before issuing `rdtsc`, which should make all memory load/
+ store operations, prior to RDTSC, globally visible.
 
  See https://github.com/oreparaz/dudect/issues/32
- See RDTSC documentation @ https://www.intel.com/content/www/us/en/docs/intrinsics-guide/index.htm#text=rdtsc&ig_expand=4395,5273
- See MFENCE documentation @ https://www.intel.com/content/www/us/en/docs/intrinsics-guide/index.htm#text=mfence&ig_expand=4395,5273,4395
+ See RDTSC documentation @
+ https://www.intel.com/content/www/us/en/docs/intrinsics-guide/index.htm#text=rdtsc&ig_expand=4395,5273
+ See MFENCE documentation @
+ https://www.intel.com/content/www/us/en/docs/intrinsics-guide/index.htm#text=mfence&ig_expand=4395,5273,4395
 
  Also see https://stackoverflow.com/a/12634857
 */
-static inline int64_t cpucycles(void) {
+static inline int64_t
+cpucycles(void)
+{
   _mm_mfence();
   return (int64_t)__rdtsc();
 }
@@ -284,30 +322,38 @@ static inline int64_t cpucycles(void) {
 #define t_threshold_moderate                                                   \
   10 // test failed. Pankaj likes 4.5 but let's be more lenient
 
-static void measure(dudect_ctx_t *ctx) {
+static void
+measure(dudect_ctx_t* ctx)
+{
   for (size_t i = 0; i < ctx->config->number_measurements; i++) {
     ctx->ticks[i] = cpucycles();
     do_one_computation(ctx->input_data + i * ctx->config->chunk_size);
   }
 
-  for (size_t i = 0; i < ctx->config->number_measurements-1; i++) {
-    ctx->exec_times[i] = ctx->ticks[i+1] - ctx->ticks[i];
+  for (size_t i = 0; i < ctx->config->number_measurements - 1; i++) {
+    ctx->exec_times[i] = ctx->ticks[i + 1] - ctx->ticks[i];
   }
 }
 
-static void update_statistics(dudect_ctx_t *ctx) {
-  for (size_t i = 10 /* discard the first few measurements */; i < (ctx->config->number_measurements-1); i++) {
+static void
+update_statistics(dudect_ctx_t* ctx)
+{
+  for (size_t i = 10 /* discard the first few measurements */;
+       i < (ctx->config->number_measurements - 1);
+       i++) {
     int64_t difference = ctx->exec_times[i];
 
     if (difference < 0) {
-      continue; // the cpu cycle counter overflowed, just throw away the measurement
+      continue; // the cpu cycle counter overflowed, just throw away the
+                // measurement
     }
 
     // t-test on the execution time
     t_push(ctx->ttest_ctxs[0], difference, ctx->classes[i]);
 
     // t-test on cropped execution times, for several cropping thresholds.
-    for (size_t crop_index = 0; crop_index < DUDECT_NUMBER_PERCENTILES; crop_index++) {
+    for (size_t crop_index = 0; crop_index < DUDECT_NUMBER_PERCENTILES;
+         crop_index++) {
       if (difference < ctx->percentiles[crop_index]) {
         t_push(ctx->ttest_ctxs[crop_index + 1], difference, ctx->classes[i]);
       }
@@ -316,24 +362,32 @@ static void update_statistics(dudect_ctx_t *ctx) {
     // second-order test (only if we have more than 10000 measurements).
     // Centered product pre-processing.
     if (ctx->ttest_ctxs[0]->n[0] > 10000) {
-      double centered = (double)difference - ctx->ttest_ctxs[0]->mean[ctx->classes[i]];
-      t_push(ctx->ttest_ctxs[1 + DUDECT_NUMBER_PERCENTILES], centered * centered, ctx->classes[i]);
+      double centered =
+        (double)difference - ctx->ttest_ctxs[0]->mean[ctx->classes[i]];
+      t_push(ctx->ttest_ctxs[1 + DUDECT_NUMBER_PERCENTILES],
+             centered * centered,
+             ctx->classes[i]);
     }
   }
 }
 
 #if DUDECT_TRACE
-static void report_test(ttest_ctx_t *x) {
+static void
+report_test(ttest_ctx_t* x)
+{
   if (x->n[0] > DUDECT_ENOUGH_MEASUREMENTS) {
     double tval = t_compute(x);
-    printf(" abs(t): %4.2f, number measurements: %f\n", tval, x->n[0]+x->n[1]);
+    printf(
+      " abs(t): %4.2f, number measurements: %f\n", tval, x->n[0] + x->n[1]);
   } else {
     printf(" (not enough measurements: %f + %f)\n", x->n[0], x->n[1]);
   }
 }
 #endif /* DUDECT_TRACE */
 
-static ttest_ctx_t *max_test(dudect_ctx_t *ctx) {
+static ttest_ctx_t*
+max_test(dudect_ctx_t* ctx)
+{
   size_t ret = 0;
   double max = 0;
   for (size_t i = 0; i < DUDECT_TESTS; i++) {
@@ -348,11 +402,15 @@ static ttest_ctx_t *max_test(dudect_ctx_t *ctx) {
   return ctx->ttest_ctxs[ret];
 }
 
-static dudect_state_t report(dudect_ctx_t *ctx) {
+static dudect_state_t
+report(dudect_ctx_t* ctx)
+{
 
-  #if DUDECT_TRACE
+#if DUDECT_TRACE
   for (size_t i = 0; i < DUDECT_TESTS; i++) {
-    printf(" bucket %zu has %f measurements\n", i, ctx->ttest_ctxs[i]->n[0] +  ctx->ttest_ctxs[i]->n[1]);
+    printf(" bucket %zu has %f measurements\n",
+           i,
+           ctx->ttest_ctxs[i]->n[0] + ctx->ttest_ctxs[i]->n[1]);
   }
 
   printf("t-test on raw measurements\n");
@@ -365,11 +423,11 @@ static dudect_state_t report(dudect_ctx_t *ctx) {
 
   printf("t-test for second order leakage\n");
   report_test(ctx->ttest_ctxs[1 + DUDECT_NUMBER_PERCENTILES]);
-  #endif /* DUDECT_TRACE */
+#endif /* DUDECT_TRACE */
 
-  ttest_ctx_t *t = max_test(ctx);
+  ttest_ctx_t* t = max_test(ctx);
   double max_t = fabs(t_compute(t));
-  double number_traces_max_t = t->n[0] +  t->n[1];
+  double number_traces_max_t = t->n[0] + t->n[1];
   double max_tau = max_t / sqrt(number_traces_max_t);
 
   // print the number of measurements of the test that yielded max t.
@@ -377,7 +435,8 @@ static dudect_state_t report(dudect_ctx_t *ctx) {
   // but can happen (different test)
   printf("meas: %7.2lf M, ", (number_traces_max_t / 1e6));
   if (number_traces_max_t < DUDECT_ENOUGH_MEASUREMENTS) {
-    printf("not enough measurements (%.0f still to go).\n", DUDECT_ENOUGH_MEASUREMENTS-number_traces_max_t);
+    printf("not enough measurements (%.0f still to go).\n",
+           DUDECT_ENOUGH_MEASUREMENTS - number_traces_max_t);
     return DUDECT_NO_LEAKAGE_EVIDENCE_YET;
   }
 
@@ -398,9 +457,9 @@ static dudect_state_t report(dudect_ctx_t *ctx) {
    * pretty sensible imho)
    */
   printf("max t: %+7.2f, max tau: %.2e, (5/tau)^2: %.2e.",
-    max_t,
-    max_tau,
-    (double)(5*5)/(double)(max_tau*max_tau));
+         max_t,
+         max_tau,
+         (double)(5 * 5) / (double)(max_tau * max_tau));
 
   if (max_t > t_threshold_bananas) {
     printf(" Definitely not constant time.\n");
@@ -416,7 +475,9 @@ static dudect_state_t report(dudect_ctx_t *ctx) {
   return DUDECT_NO_LEAKAGE_EVIDENCE_YET;
 }
 
-dudect_state_t dudect_main(dudect_ctx_t *ctx) {
+dudect_state_t
+dudect_main(dudect_ctx_t* ctx)
+{
   prepare_inputs(ctx->config, ctx->input_data, ctx->classes);
   measure(ctx);
 
@@ -435,23 +496,30 @@ dudect_state_t dudect_main(dudect_ctx_t *ctx) {
   return ret;
 }
 
-int dudect_init(dudect_ctx_t *ctx, dudect_config_t *conf)
+int
+dudect_init(dudect_ctx_t* ctx, dudect_config_t* conf)
 {
-  ctx->config = (dudect_config_t*) calloc(1, sizeof(*conf));
+  ctx->config = (dudect_config_t*)calloc(1, sizeof(*conf));
   ctx->config->number_measurements = conf->number_measurements;
   ctx->config->chunk_size = conf->chunk_size;
-  ctx->ticks = (int64_t*) calloc(ctx->config->number_measurements, sizeof(int64_t));
-  ctx->exec_times = (int64_t*) calloc(ctx->config->number_measurements, sizeof(int64_t));
-  ctx->classes = (uint8_t*) calloc(ctx->config->number_measurements, sizeof(uint8_t));
-  ctx->input_data = (uint8_t*) calloc(ctx->config->number_measurements * ctx->config->chunk_size, sizeof(uint8_t));
+  ctx->ticks =
+    (int64_t*)calloc(ctx->config->number_measurements, sizeof(int64_t));
+  ctx->exec_times =
+    (int64_t*)calloc(ctx->config->number_measurements, sizeof(int64_t));
+  ctx->classes =
+    (uint8_t*)calloc(ctx->config->number_measurements, sizeof(uint8_t));
+  ctx->input_data =
+    (uint8_t*)calloc(ctx->config->number_measurements * ctx->config->chunk_size,
+                     sizeof(uint8_t));
 
   for (int i = 0; i < DUDECT_TESTS; i++) {
-    ctx->ttest_ctxs[i] = (ttest_ctx_t *)calloc(1, sizeof(ttest_ctx_t));
+    ctx->ttest_ctxs[i] = (ttest_ctx_t*)calloc(1, sizeof(ttest_ctx_t));
     assert(ctx->ttest_ctxs[i]);
     t_init(ctx->ttest_ctxs[i]);
   }
 
-  ctx->percentiles = (int64_t*) calloc(DUDECT_NUMBER_PERCENTILES, sizeof(int64_t));
+  ctx->percentiles =
+    (int64_t*)calloc(DUDECT_NUMBER_PERCENTILES, sizeof(int64_t));
 
   assert(ctx->ticks);
   assert(ctx->exec_times);
@@ -462,7 +530,8 @@ int dudect_init(dudect_ctx_t *ctx, dudect_config_t *conf)
   return 0;
 }
 
-int dudect_free(dudect_ctx_t *ctx)
+int
+dudect_free(dudect_ctx_t* ctx)
 {
   for (int i = 0; i < DUDECT_TESTS; i++) {
     free(ctx->ttest_ctxs[i]);
@@ -479,5 +548,5 @@ int dudect_free(dudect_ctx_t *ctx)
 #endif /* DUDECT_IMPLEMENTATION */
 
 #ifdef __cplusplus
-}  /* extern "C" */
+} /* extern "C" */
 #endif

@@ -45,8 +45,8 @@
  * uses many of the tricks described therein. Only the crecip function is taken
  * from the sample implementation. */
 
-#include <string.h>
 #include <stdint.h>
+#include <string.h>
 
 #ifdef _MSC_VER
 #define inline __inline
@@ -65,17 +65,21 @@ typedef int64_t limb;
  * i.e. the limbs are 26, 25, 26, 25, ... bits wide. */
 
 /* Sum two numbers: output += in */
-static void fsum(limb *output, const limb *in) {
+static void
+fsum(limb* output, const limb* in)
+{
   unsigned i;
   for (i = 0; i < 10; i += 2) {
-    output[0+i] = output[0+i] + in[0+i];
-    output[1+i] = output[1+i] + in[1+i];
+    output[0 + i] = output[0 + i] + in[0 + i];
+    output[1 + i] = output[1 + i] + in[1 + i];
   }
 }
 
 /* Find the difference of two numbers: output = in - output
  * (note the order of the arguments!). */
-static void fdifference(limb *output, const limb *in) {
+static void
+fdifference(limb* output, const limb* in)
+{
   unsigned i;
   for (i = 0; i < 10; ++i) {
     output[i] = in[i] - output[i];
@@ -83,7 +87,9 @@ static void fdifference(limb *output, const limb *in) {
 }
 
 /* Multiply a number by a scalar: output = in * scalar */
-static void fscalar_product(limb *output, const limb *in, const limb scalar) {
+static void
+fscalar_product(limb* output, const limb* in, const limb scalar)
+{
   unsigned i;
   for (i = 0; i < 10; ++i) {
     output[i] = in[i] * scalar;
@@ -96,114 +102,118 @@ static void fscalar_product(limb *output, const limb *in, const limb scalar) {
  * form, the output is not.
  *
  * output[x] <= 14 * the largest product of the input limbs. */
-static void fproduct(limb *output, const limb *in2, const limb *in) {
-  output[0] =       ((limb) ((s32) in2[0])) * ((s32) in[0]);
-  output[1] =       ((limb) ((s32) in2[0])) * ((s32) in[1]) +
-                    ((limb) ((s32) in2[1])) * ((s32) in[0]);
-  output[2] =  2 *  ((limb) ((s32) in2[1])) * ((s32) in[1]) +
-                    ((limb) ((s32) in2[0])) * ((s32) in[2]) +
-                    ((limb) ((s32) in2[2])) * ((s32) in[0]);
-  output[3] =       ((limb) ((s32) in2[1])) * ((s32) in[2]) +
-                    ((limb) ((s32) in2[2])) * ((s32) in[1]) +
-                    ((limb) ((s32) in2[0])) * ((s32) in[3]) +
-                    ((limb) ((s32) in2[3])) * ((s32) in[0]);
-  output[4] =       ((limb) ((s32) in2[2])) * ((s32) in[2]) +
-               2 * (((limb) ((s32) in2[1])) * ((s32) in[3]) +
-                    ((limb) ((s32) in2[3])) * ((s32) in[1])) +
-                    ((limb) ((s32) in2[0])) * ((s32) in[4]) +
-                    ((limb) ((s32) in2[4])) * ((s32) in[0]);
-  output[5] =       ((limb) ((s32) in2[2])) * ((s32) in[3]) +
-                    ((limb) ((s32) in2[3])) * ((s32) in[2]) +
-                    ((limb) ((s32) in2[1])) * ((s32) in[4]) +
-                    ((limb) ((s32) in2[4])) * ((s32) in[1]) +
-                    ((limb) ((s32) in2[0])) * ((s32) in[5]) +
-                    ((limb) ((s32) in2[5])) * ((s32) in[0]);
-  output[6] =  2 * (((limb) ((s32) in2[3])) * ((s32) in[3]) +
-                    ((limb) ((s32) in2[1])) * ((s32) in[5]) +
-                    ((limb) ((s32) in2[5])) * ((s32) in[1])) +
-                    ((limb) ((s32) in2[2])) * ((s32) in[4]) +
-                    ((limb) ((s32) in2[4])) * ((s32) in[2]) +
-                    ((limb) ((s32) in2[0])) * ((s32) in[6]) +
-                    ((limb) ((s32) in2[6])) * ((s32) in[0]);
-  output[7] =       ((limb) ((s32) in2[3])) * ((s32) in[4]) +
-                    ((limb) ((s32) in2[4])) * ((s32) in[3]) +
-                    ((limb) ((s32) in2[2])) * ((s32) in[5]) +
-                    ((limb) ((s32) in2[5])) * ((s32) in[2]) +
-                    ((limb) ((s32) in2[1])) * ((s32) in[6]) +
-                    ((limb) ((s32) in2[6])) * ((s32) in[1]) +
-                    ((limb) ((s32) in2[0])) * ((s32) in[7]) +
-                    ((limb) ((s32) in2[7])) * ((s32) in[0]);
-  output[8] =       ((limb) ((s32) in2[4])) * ((s32) in[4]) +
-               2 * (((limb) ((s32) in2[3])) * ((s32) in[5]) +
-                    ((limb) ((s32) in2[5])) * ((s32) in[3]) +
-                    ((limb) ((s32) in2[1])) * ((s32) in[7]) +
-                    ((limb) ((s32) in2[7])) * ((s32) in[1])) +
-                    ((limb) ((s32) in2[2])) * ((s32) in[6]) +
-                    ((limb) ((s32) in2[6])) * ((s32) in[2]) +
-                    ((limb) ((s32) in2[0])) * ((s32) in[8]) +
-                    ((limb) ((s32) in2[8])) * ((s32) in[0]);
-  output[9] =       ((limb) ((s32) in2[4])) * ((s32) in[5]) +
-                    ((limb) ((s32) in2[5])) * ((s32) in[4]) +
-                    ((limb) ((s32) in2[3])) * ((s32) in[6]) +
-                    ((limb) ((s32) in2[6])) * ((s32) in[3]) +
-                    ((limb) ((s32) in2[2])) * ((s32) in[7]) +
-                    ((limb) ((s32) in2[7])) * ((s32) in[2]) +
-                    ((limb) ((s32) in2[1])) * ((s32) in[8]) +
-                    ((limb) ((s32) in2[8])) * ((s32) in[1]) +
-                    ((limb) ((s32) in2[0])) * ((s32) in[9]) +
-                    ((limb) ((s32) in2[9])) * ((s32) in[0]);
-  output[10] = 2 * (((limb) ((s32) in2[5])) * ((s32) in[5]) +
-                    ((limb) ((s32) in2[3])) * ((s32) in[7]) +
-                    ((limb) ((s32) in2[7])) * ((s32) in[3]) +
-                    ((limb) ((s32) in2[1])) * ((s32) in[9]) +
-                    ((limb) ((s32) in2[9])) * ((s32) in[1])) +
-                    ((limb) ((s32) in2[4])) * ((s32) in[6]) +
-                    ((limb) ((s32) in2[6])) * ((s32) in[4]) +
-                    ((limb) ((s32) in2[2])) * ((s32) in[8]) +
-                    ((limb) ((s32) in2[8])) * ((s32) in[2]);
-  output[11] =      ((limb) ((s32) in2[5])) * ((s32) in[6]) +
-                    ((limb) ((s32) in2[6])) * ((s32) in[5]) +
-                    ((limb) ((s32) in2[4])) * ((s32) in[7]) +
-                    ((limb) ((s32) in2[7])) * ((s32) in[4]) +
-                    ((limb) ((s32) in2[3])) * ((s32) in[8]) +
-                    ((limb) ((s32) in2[8])) * ((s32) in[3]) +
-                    ((limb) ((s32) in2[2])) * ((s32) in[9]) +
-                    ((limb) ((s32) in2[9])) * ((s32) in[2]);
-  output[12] =      ((limb) ((s32) in2[6])) * ((s32) in[6]) +
-               2 * (((limb) ((s32) in2[5])) * ((s32) in[7]) +
-                    ((limb) ((s32) in2[7])) * ((s32) in[5]) +
-                    ((limb) ((s32) in2[3])) * ((s32) in[9]) +
-                    ((limb) ((s32) in2[9])) * ((s32) in[3])) +
-                    ((limb) ((s32) in2[4])) * ((s32) in[8]) +
-                    ((limb) ((s32) in2[8])) * ((s32) in[4]);
-  output[13] =      ((limb) ((s32) in2[6])) * ((s32) in[7]) +
-                    ((limb) ((s32) in2[7])) * ((s32) in[6]) +
-                    ((limb) ((s32) in2[5])) * ((s32) in[8]) +
-                    ((limb) ((s32) in2[8])) * ((s32) in[5]) +
-                    ((limb) ((s32) in2[4])) * ((s32) in[9]) +
-                    ((limb) ((s32) in2[9])) * ((s32) in[4]);
-  output[14] = 2 * (((limb) ((s32) in2[7])) * ((s32) in[7]) +
-                    ((limb) ((s32) in2[5])) * ((s32) in[9]) +
-                    ((limb) ((s32) in2[9])) * ((s32) in[5])) +
-                    ((limb) ((s32) in2[6])) * ((s32) in[8]) +
-                    ((limb) ((s32) in2[8])) * ((s32) in[6]);
-  output[15] =      ((limb) ((s32) in2[7])) * ((s32) in[8]) +
-                    ((limb) ((s32) in2[8])) * ((s32) in[7]) +
-                    ((limb) ((s32) in2[6])) * ((s32) in[9]) +
-                    ((limb) ((s32) in2[9])) * ((s32) in[6]);
-  output[16] =      ((limb) ((s32) in2[8])) * ((s32) in[8]) +
-               2 * (((limb) ((s32) in2[7])) * ((s32) in[9]) +
-                    ((limb) ((s32) in2[9])) * ((s32) in[7]));
-  output[17] =      ((limb) ((s32) in2[8])) * ((s32) in[9]) +
-                    ((limb) ((s32) in2[9])) * ((s32) in[8]);
-  output[18] = 2 *  ((limb) ((s32) in2[9])) * ((s32) in[9]);
+static void
+fproduct(limb* output, const limb* in2, const limb* in)
+{
+  output[0] = ((limb)((s32)in2[0])) * ((s32)in[0]);
+  output[1] =
+    ((limb)((s32)in2[0])) * ((s32)in[1]) + ((limb)((s32)in2[1])) * ((s32)in[0]);
+  output[2] = 2 * ((limb)((s32)in2[1])) * ((s32)in[1]) +
+              ((limb)((s32)in2[0])) * ((s32)in[2]) +
+              ((limb)((s32)in2[2])) * ((s32)in[0]);
+  output[3] = ((limb)((s32)in2[1])) * ((s32)in[2]) +
+              ((limb)((s32)in2[2])) * ((s32)in[1]) +
+              ((limb)((s32)in2[0])) * ((s32)in[3]) +
+              ((limb)((s32)in2[3])) * ((s32)in[0]);
+  output[4] = ((limb)((s32)in2[2])) * ((s32)in[2]) +
+              2 * (((limb)((s32)in2[1])) * ((s32)in[3]) +
+                   ((limb)((s32)in2[3])) * ((s32)in[1])) +
+              ((limb)((s32)in2[0])) * ((s32)in[4]) +
+              ((limb)((s32)in2[4])) * ((s32)in[0]);
+  output[5] = ((limb)((s32)in2[2])) * ((s32)in[3]) +
+              ((limb)((s32)in2[3])) * ((s32)in[2]) +
+              ((limb)((s32)in2[1])) * ((s32)in[4]) +
+              ((limb)((s32)in2[4])) * ((s32)in[1]) +
+              ((limb)((s32)in2[0])) * ((s32)in[5]) +
+              ((limb)((s32)in2[5])) * ((s32)in[0]);
+  output[6] = 2 * (((limb)((s32)in2[3])) * ((s32)in[3]) +
+                   ((limb)((s32)in2[1])) * ((s32)in[5]) +
+                   ((limb)((s32)in2[5])) * ((s32)in[1])) +
+              ((limb)((s32)in2[2])) * ((s32)in[4]) +
+              ((limb)((s32)in2[4])) * ((s32)in[2]) +
+              ((limb)((s32)in2[0])) * ((s32)in[6]) +
+              ((limb)((s32)in2[6])) * ((s32)in[0]);
+  output[7] = ((limb)((s32)in2[3])) * ((s32)in[4]) +
+              ((limb)((s32)in2[4])) * ((s32)in[3]) +
+              ((limb)((s32)in2[2])) * ((s32)in[5]) +
+              ((limb)((s32)in2[5])) * ((s32)in[2]) +
+              ((limb)((s32)in2[1])) * ((s32)in[6]) +
+              ((limb)((s32)in2[6])) * ((s32)in[1]) +
+              ((limb)((s32)in2[0])) * ((s32)in[7]) +
+              ((limb)((s32)in2[7])) * ((s32)in[0]);
+  output[8] = ((limb)((s32)in2[4])) * ((s32)in[4]) +
+              2 * (((limb)((s32)in2[3])) * ((s32)in[5]) +
+                   ((limb)((s32)in2[5])) * ((s32)in[3]) +
+                   ((limb)((s32)in2[1])) * ((s32)in[7]) +
+                   ((limb)((s32)in2[7])) * ((s32)in[1])) +
+              ((limb)((s32)in2[2])) * ((s32)in[6]) +
+              ((limb)((s32)in2[6])) * ((s32)in[2]) +
+              ((limb)((s32)in2[0])) * ((s32)in[8]) +
+              ((limb)((s32)in2[8])) * ((s32)in[0]);
+  output[9] = ((limb)((s32)in2[4])) * ((s32)in[5]) +
+              ((limb)((s32)in2[5])) * ((s32)in[4]) +
+              ((limb)((s32)in2[3])) * ((s32)in[6]) +
+              ((limb)((s32)in2[6])) * ((s32)in[3]) +
+              ((limb)((s32)in2[2])) * ((s32)in[7]) +
+              ((limb)((s32)in2[7])) * ((s32)in[2]) +
+              ((limb)((s32)in2[1])) * ((s32)in[8]) +
+              ((limb)((s32)in2[8])) * ((s32)in[1]) +
+              ((limb)((s32)in2[0])) * ((s32)in[9]) +
+              ((limb)((s32)in2[9])) * ((s32)in[0]);
+  output[10] = 2 * (((limb)((s32)in2[5])) * ((s32)in[5]) +
+                    ((limb)((s32)in2[3])) * ((s32)in[7]) +
+                    ((limb)((s32)in2[7])) * ((s32)in[3]) +
+                    ((limb)((s32)in2[1])) * ((s32)in[9]) +
+                    ((limb)((s32)in2[9])) * ((s32)in[1])) +
+               ((limb)((s32)in2[4])) * ((s32)in[6]) +
+               ((limb)((s32)in2[6])) * ((s32)in[4]) +
+               ((limb)((s32)in2[2])) * ((s32)in[8]) +
+               ((limb)((s32)in2[8])) * ((s32)in[2]);
+  output[11] = ((limb)((s32)in2[5])) * ((s32)in[6]) +
+               ((limb)((s32)in2[6])) * ((s32)in[5]) +
+               ((limb)((s32)in2[4])) * ((s32)in[7]) +
+               ((limb)((s32)in2[7])) * ((s32)in[4]) +
+               ((limb)((s32)in2[3])) * ((s32)in[8]) +
+               ((limb)((s32)in2[8])) * ((s32)in[3]) +
+               ((limb)((s32)in2[2])) * ((s32)in[9]) +
+               ((limb)((s32)in2[9])) * ((s32)in[2]);
+  output[12] = ((limb)((s32)in2[6])) * ((s32)in[6]) +
+               2 * (((limb)((s32)in2[5])) * ((s32)in[7]) +
+                    ((limb)((s32)in2[7])) * ((s32)in[5]) +
+                    ((limb)((s32)in2[3])) * ((s32)in[9]) +
+                    ((limb)((s32)in2[9])) * ((s32)in[3])) +
+               ((limb)((s32)in2[4])) * ((s32)in[8]) +
+               ((limb)((s32)in2[8])) * ((s32)in[4]);
+  output[13] = ((limb)((s32)in2[6])) * ((s32)in[7]) +
+               ((limb)((s32)in2[7])) * ((s32)in[6]) +
+               ((limb)((s32)in2[5])) * ((s32)in[8]) +
+               ((limb)((s32)in2[8])) * ((s32)in[5]) +
+               ((limb)((s32)in2[4])) * ((s32)in[9]) +
+               ((limb)((s32)in2[9])) * ((s32)in[4]);
+  output[14] = 2 * (((limb)((s32)in2[7])) * ((s32)in[7]) +
+                    ((limb)((s32)in2[5])) * ((s32)in[9]) +
+                    ((limb)((s32)in2[9])) * ((s32)in[5])) +
+               ((limb)((s32)in2[6])) * ((s32)in[8]) +
+               ((limb)((s32)in2[8])) * ((s32)in[6]);
+  output[15] = ((limb)((s32)in2[7])) * ((s32)in[8]) +
+               ((limb)((s32)in2[8])) * ((s32)in[7]) +
+               ((limb)((s32)in2[6])) * ((s32)in[9]) +
+               ((limb)((s32)in2[9])) * ((s32)in[6]);
+  output[16] = ((limb)((s32)in2[8])) * ((s32)in[8]) +
+               2 * (((limb)((s32)in2[7])) * ((s32)in[9]) +
+                    ((limb)((s32)in2[9])) * ((s32)in[7]));
+  output[17] =
+    ((limb)((s32)in2[8])) * ((s32)in[9]) + ((limb)((s32)in2[9])) * ((s32)in[8]);
+  output[18] = 2 * ((limb)((s32)in2[9])) * ((s32)in[9]);
 }
 
 /* Reduce a long form to a short form by taking the input mod 2^255 - 19.
  *
  * On entry: |output[i]| < 14*2^54
  * On exit: |output[0..8]| < 280*2^54 */
-static void freduce_degree(limb *output) {
+static void
+freduce_degree(limb* output)
+{
   /* Each of these shifts and adds ends up multiplying the value by 19.
    *
    * For output[0..8], the absolute entry value is < 14*2^54 and we add, at
@@ -248,11 +258,11 @@ static inline limb
 div_by_2_26(const limb v)
 {
   /* High word of v; no shift needed. */
-  const uint32_t highword = (uint32_t) (((uint64_t) v) >> 32);
+  const uint32_t highword = (uint32_t)(((uint64_t)v) >> 32);
   /* Set to all 1s if v was negative; else set to 0s. */
-  const int32_t sign = ((int32_t) highword) >> 31;
+  const int32_t sign = ((int32_t)highword) >> 31;
   /* Set to 0x3ffffff if v was negative; else set to 0. */
-  const int32_t roundoff = ((uint32_t) sign) >> 6;
+  const int32_t roundoff = ((uint32_t)sign) >> 6;
   /* Should return v / (1<<26) */
   return (v + roundoff) >> 26;
 }
@@ -264,11 +274,11 @@ static inline limb
 div_by_2_25(const limb v)
 {
   /* High word of v; no shift needed*/
-  const uint32_t highword = (uint32_t) (((uint64_t) v) >> 32);
+  const uint32_t highword = (uint32_t)(((uint64_t)v) >> 32);
   /* Set to all 1s if v was negative; else set to 0s. */
-  const int32_t sign = ((int32_t) highword) >> 31;
+  const int32_t sign = ((int32_t)highword) >> 31;
   /* Set to 0x1ffffff if v was negative; else set to 0. */
-  const int32_t roundoff = ((uint32_t) sign) >> 7;
+  const int32_t roundoff = ((uint32_t)sign) >> 7;
   /* Should return v / (1<<25) */
   return (v + roundoff) >> 25;
 }
@@ -276,7 +286,9 @@ div_by_2_25(const limb v)
 /* Reduce all coefficients of the short form input so that |x| < 2^26.
  *
  * On entry: |output[i]| < 280*2^54 */
-static void freduce_coefficients(limb *output) {
+static void
+freduce_coefficients(limb* output)
+{
   unsigned i;
 
   output[10] = 0;
@@ -288,7 +300,7 @@ static void freduce_coefficients(limb *output) {
      * next limb and we can approximate the resulting bound of that limb by
      * 281*2^54. */
     output[i] -= over << 26;
-    output[i+1] += over;
+    output[i + 1] += over;
 
     /* For the first iteration, |output[i+1]| < 281*2^54, thus |over| <
      * 281*2^29. When this is added to the next limb, the resulting bound can
@@ -296,9 +308,9 @@ static void freduce_coefficients(limb *output) {
      *
      * For subsequent iterations of the loop, 281*2^54 remains a conservative
      * bound and no overflow occurs. */
-    over = div_by_2_25(output[i+1]);
-    output[i+1] -= over << 25;
-    output[i+2] += over;
+    over = div_by_2_25(output[i + 1]);
+    output[i + 1] -= over << 25;
+    output[i + 2] += over;
   }
   /* Now |output[10]| < 281*2^29 and all other coefficients are reduced. */
   output[0] += output[10] << 4;
@@ -324,9 +336,11 @@ static void freduce_coefficients(limb *output) {
  * On entry: |in[i]| < 2^27 and |in2[i]| < 2^27.
  *
  * output must be distinct to both inputs. The output is reduced degree
- * (indeed, one need only provide storage for 10 limbs) and |output[i]| < 2^26. */
+ * (indeed, one need only provide storage for 10 limbs) and |output[i]| < 2^26.
+ */
 static void
-fmul(limb *output, const limb *in, const limb *in2) {
+fmul(limb* output, const limb* in, const limb* in2)
+{
   limb t[19];
   fproduct(t, in, in2);
   /* |t[i]| < 14*2^54 */
@@ -342,62 +356,64 @@ fmul(limb *output, const limb *in, const limb *in2) {
  * form, the output is not.
  *
  * output[x] <= 14 * the largest product of the input limbs. */
-static void fsquare_inner(limb *output, const limb *in) {
-  output[0] =       ((limb) ((s32) in[0])) * ((s32) in[0]);
-  output[1] =  2 *  ((limb) ((s32) in[0])) * ((s32) in[1]);
-  output[2] =  2 * (((limb) ((s32) in[1])) * ((s32) in[1]) +
-                    ((limb) ((s32) in[0])) * ((s32) in[2]));
-  output[3] =  2 * (((limb) ((s32) in[1])) * ((s32) in[2]) +
-                    ((limb) ((s32) in[0])) * ((s32) in[3]));
-  output[4] =       ((limb) ((s32) in[2])) * ((s32) in[2]) +
-               4 *  ((limb) ((s32) in[1])) * ((s32) in[3]) +
-               2 *  ((limb) ((s32) in[0])) * ((s32) in[4]);
-  output[5] =  2 * (((limb) ((s32) in[2])) * ((s32) in[3]) +
-                    ((limb) ((s32) in[1])) * ((s32) in[4]) +
-                    ((limb) ((s32) in[0])) * ((s32) in[5]));
-  output[6] =  2 * (((limb) ((s32) in[3])) * ((s32) in[3]) +
-                    ((limb) ((s32) in[2])) * ((s32) in[4]) +
-                    ((limb) ((s32) in[0])) * ((s32) in[6]) +
-               2 *  ((limb) ((s32) in[1])) * ((s32) in[5]));
-  output[7] =  2 * (((limb) ((s32) in[3])) * ((s32) in[4]) +
-                    ((limb) ((s32) in[2])) * ((s32) in[5]) +
-                    ((limb) ((s32) in[1])) * ((s32) in[6]) +
-                    ((limb) ((s32) in[0])) * ((s32) in[7]));
-  output[8] =       ((limb) ((s32) in[4])) * ((s32) in[4]) +
-               2 * (((limb) ((s32) in[2])) * ((s32) in[6]) +
-                    ((limb) ((s32) in[0])) * ((s32) in[8]) +
-               2 * (((limb) ((s32) in[1])) * ((s32) in[7]) +
-                    ((limb) ((s32) in[3])) * ((s32) in[5])));
-  output[9] =  2 * (((limb) ((s32) in[4])) * ((s32) in[5]) +
-                    ((limb) ((s32) in[3])) * ((s32) in[6]) +
-                    ((limb) ((s32) in[2])) * ((s32) in[7]) +
-                    ((limb) ((s32) in[1])) * ((s32) in[8]) +
-                    ((limb) ((s32) in[0])) * ((s32) in[9]));
-  output[10] = 2 * (((limb) ((s32) in[5])) * ((s32) in[5]) +
-                    ((limb) ((s32) in[4])) * ((s32) in[6]) +
-                    ((limb) ((s32) in[2])) * ((s32) in[8]) +
-               2 * (((limb) ((s32) in[3])) * ((s32) in[7]) +
-                    ((limb) ((s32) in[1])) * ((s32) in[9])));
-  output[11] = 2 * (((limb) ((s32) in[5])) * ((s32) in[6]) +
-                    ((limb) ((s32) in[4])) * ((s32) in[7]) +
-                    ((limb) ((s32) in[3])) * ((s32) in[8]) +
-                    ((limb) ((s32) in[2])) * ((s32) in[9]));
-  output[12] =      ((limb) ((s32) in[6])) * ((s32) in[6]) +
-               2 * (((limb) ((s32) in[4])) * ((s32) in[8]) +
-               2 * (((limb) ((s32) in[5])) * ((s32) in[7]) +
-                    ((limb) ((s32) in[3])) * ((s32) in[9])));
-  output[13] = 2 * (((limb) ((s32) in[6])) * ((s32) in[7]) +
-                    ((limb) ((s32) in[5])) * ((s32) in[8]) +
-                    ((limb) ((s32) in[4])) * ((s32) in[9]));
-  output[14] = 2 * (((limb) ((s32) in[7])) * ((s32) in[7]) +
-                    ((limb) ((s32) in[6])) * ((s32) in[8]) +
-               2 *  ((limb) ((s32) in[5])) * ((s32) in[9]));
-  output[15] = 2 * (((limb) ((s32) in[7])) * ((s32) in[8]) +
-                    ((limb) ((s32) in[6])) * ((s32) in[9]));
-  output[16] =      ((limb) ((s32) in[8])) * ((s32) in[8]) +
-               4 *  ((limb) ((s32) in[7])) * ((s32) in[9]);
-  output[17] = 2 *  ((limb) ((s32) in[8])) * ((s32) in[9]);
-  output[18] = 2 *  ((limb) ((s32) in[9])) * ((s32) in[9]);
+static void
+fsquare_inner(limb* output, const limb* in)
+{
+  output[0] = ((limb)((s32)in[0])) * ((s32)in[0]);
+  output[1] = 2 * ((limb)((s32)in[0])) * ((s32)in[1]);
+  output[2] = 2 * (((limb)((s32)in[1])) * ((s32)in[1]) +
+                   ((limb)((s32)in[0])) * ((s32)in[2]));
+  output[3] = 2 * (((limb)((s32)in[1])) * ((s32)in[2]) +
+                   ((limb)((s32)in[0])) * ((s32)in[3]));
+  output[4] = ((limb)((s32)in[2])) * ((s32)in[2]) +
+              4 * ((limb)((s32)in[1])) * ((s32)in[3]) +
+              2 * ((limb)((s32)in[0])) * ((s32)in[4]);
+  output[5] = 2 * (((limb)((s32)in[2])) * ((s32)in[3]) +
+                   ((limb)((s32)in[1])) * ((s32)in[4]) +
+                   ((limb)((s32)in[0])) * ((s32)in[5]));
+  output[6] = 2 * (((limb)((s32)in[3])) * ((s32)in[3]) +
+                   ((limb)((s32)in[2])) * ((s32)in[4]) +
+                   ((limb)((s32)in[0])) * ((s32)in[6]) +
+                   2 * ((limb)((s32)in[1])) * ((s32)in[5]));
+  output[7] =
+    2 *
+    (((limb)((s32)in[3])) * ((s32)in[4]) + ((limb)((s32)in[2])) * ((s32)in[5]) +
+     ((limb)((s32)in[1])) * ((s32)in[6]) + ((limb)((s32)in[0])) * ((s32)in[7]));
+  output[8] = ((limb)((s32)in[4])) * ((s32)in[4]) +
+              2 * (((limb)((s32)in[2])) * ((s32)in[6]) +
+                   ((limb)((s32)in[0])) * ((s32)in[8]) +
+                   2 * (((limb)((s32)in[1])) * ((s32)in[7]) +
+                        ((limb)((s32)in[3])) * ((s32)in[5])));
+  output[9] =
+    2 *
+    (((limb)((s32)in[4])) * ((s32)in[5]) + ((limb)((s32)in[3])) * ((s32)in[6]) +
+     ((limb)((s32)in[2])) * ((s32)in[7]) + ((limb)((s32)in[1])) * ((s32)in[8]) +
+     ((limb)((s32)in[0])) * ((s32)in[9]));
+  output[10] = 2 * (((limb)((s32)in[5])) * ((s32)in[5]) +
+                    ((limb)((s32)in[4])) * ((s32)in[6]) +
+                    ((limb)((s32)in[2])) * ((s32)in[8]) +
+                    2 * (((limb)((s32)in[3])) * ((s32)in[7]) +
+                         ((limb)((s32)in[1])) * ((s32)in[9])));
+  output[11] =
+    2 *
+    (((limb)((s32)in[5])) * ((s32)in[6]) + ((limb)((s32)in[4])) * ((s32)in[7]) +
+     ((limb)((s32)in[3])) * ((s32)in[8]) + ((limb)((s32)in[2])) * ((s32)in[9]));
+  output[12] = ((limb)((s32)in[6])) * ((s32)in[6]) +
+               2 * (((limb)((s32)in[4])) * ((s32)in[8]) +
+                    2 * (((limb)((s32)in[5])) * ((s32)in[7]) +
+                         ((limb)((s32)in[3])) * ((s32)in[9])));
+  output[13] = 2 * (((limb)((s32)in[6])) * ((s32)in[7]) +
+                    ((limb)((s32)in[5])) * ((s32)in[8]) +
+                    ((limb)((s32)in[4])) * ((s32)in[9]));
+  output[14] = 2 * (((limb)((s32)in[7])) * ((s32)in[7]) +
+                    ((limb)((s32)in[6])) * ((s32)in[8]) +
+                    2 * ((limb)((s32)in[5])) * ((s32)in[9]));
+  output[15] = 2 * (((limb)((s32)in[7])) * ((s32)in[8]) +
+                    ((limb)((s32)in[6])) * ((s32)in[9]));
+  output[16] = ((limb)((s32)in[8])) * ((s32)in[8]) +
+               4 * ((limb)((s32)in[7])) * ((s32)in[9]);
+  output[17] = 2 * ((limb)((s32)in[8])) * ((s32)in[9]);
+  output[18] = 2 * ((limb)((s32)in[9])) * ((s32)in[9]);
 }
 
 /* fsquare sets output = in^2.
@@ -408,7 +424,8 @@ static void fsquare_inner(limb *output, const limb *in) {
  * On exit: The |output| argument is in reduced coefficients form (indeed, one
  * need only provide storage for 10 limbs) and |out[i]| < 2^26. */
 static void
-fsquare(limb *output, const limb *in) {
+fsquare(limb* output, const limb* in)
+{
   limb t[19];
   fsquare_inner(t, in);
   /* |t[i]| < 14*2^54 because the largest product of two limbs will be <
@@ -422,12 +439,14 @@ fsquare(limb *output, const limb *in) {
 
 /* Take a little-endian, 32-byte number and expand it into polynomial form */
 static void
-fexpand(limb *output, const u8 *input) {
-#define F(n,start,shift,mask) \
-  output[n] = ((((limb) input[start + 0]) | \
-                ((limb) input[start + 1]) << 8 | \
-                ((limb) input[start + 2]) << 16 | \
-                ((limb) input[start + 3]) << 24) >> shift) & mask;
+fexpand(limb* output, const u8* input)
+{
+#define F(n, start, shift, mask)                                               \
+  output[n] =                                                                  \
+    ((((limb)input[start + 0]) | ((limb)input[start + 1]) << 8 |               \
+      ((limb)input[start + 2]) << 16 | ((limb)input[start + 3]) << 24) >>      \
+     shift) &                                                                  \
+    mask;
   F(0, 0, 0, 0x3ffffff);
   F(1, 3, 2, 0x1ffffff);
   F(2, 6, 3, 0x3ffffff);
@@ -446,7 +465,9 @@ fexpand(limb *output, const u8 *input) {
 #endif
 
 /* s32_eq returns 0xffffffff iff a == b and zero otherwise. */
-static s32 s32_eq(s32 a, s32 b) {
+static s32
+s32_eq(s32 a, s32 b)
+{
   a = ~(a ^ b);
   a &= a << 16;
   a &= a << 8;
@@ -458,7 +479,9 @@ static s32 s32_eq(s32 a, s32 b) {
 
 /* s32_gte returns 0xffffffff if a >= b and zero otherwise, where a and b are
  * both non-negative. */
-static s32 s32_gte(s32 a, s32 b) {
+static s32
+s32_gte(s32 a, s32 b)
+{
   a -= b;
   /* a >= 0 iff a >= b. */
   return ~(a >> 31);
@@ -469,7 +492,8 @@ static s32 s32_gte(s32 a, s32 b) {
  *
  * On entry: |input_limbs[i]| < 2^26 */
 static void
-fcontract(u8 *output, limb *input_limbs) {
+fcontract(u8* output, limb* input_limbs)
+{
   int i;
   int j;
   s32 input[10];
@@ -488,12 +512,12 @@ fcontract(u8 *output, limb *input_limbs) {
         const s32 mask = input[i] >> 31;
         const s32 carry = -((input[i] & mask) >> 25);
         input[i] = input[i] + (carry << 25);
-        input[i+1] = input[i+1] - carry;
+        input[i + 1] = input[i + 1] - carry;
       } else {
         const s32 mask = input[i] >> 31;
         const s32 carry = -((input[i] & mask) >> 26);
         input[i] = input[i] + (carry << 26);
-        input[i+1] = input[i+1] - carry;
+        input[i + 1] = input[i + 1] - carry;
       }
     }
 
@@ -537,18 +561,18 @@ fcontract(u8 *output, limb *input_limbs) {
       if ((i & 1) == 1) {
         const s32 carry = input[i] >> 25;
         input[i] &= 0x1ffffff;
-        input[i+1] += carry;
+        input[i + 1] += carry;
       } else {
         const s32 carry = input[i] >> 26;
         input[i] &= 0x3ffffff;
-        input[i+1] += carry;
+        input[i + 1] += carry;
       }
     }
 
     {
       const s32 carry = input[9] >> 25;
       input[9] &= 0x1ffffff;
-      input[0] += 19*carry;
+      input[0] += 19 * carry;
     }
   }
 
@@ -591,23 +615,23 @@ fcontract(u8 *output, limb *input_limbs) {
   input[7] <<= 3;
   input[8] <<= 4;
   input[9] <<= 6;
-#define F(i, s) \
-  output[s+0] |=  input[i] & 0xff; \
-  output[s+1]  = (input[i] >> 8) & 0xff; \
-  output[s+2]  = (input[i] >> 16) & 0xff; \
-  output[s+3]  = (input[i] >> 24) & 0xff;
+#define F(i, s)                                                                \
+  output[s + 0] |= input[i] & 0xff;                                            \
+  output[s + 1] = (input[i] >> 8) & 0xff;                                      \
+  output[s + 2] = (input[i] >> 16) & 0xff;                                     \
+  output[s + 3] = (input[i] >> 24) & 0xff;
   output[0] = 0;
   output[16] = 0;
-  F(0,0);
-  F(1,3);
-  F(2,6);
-  F(3,9);
-  F(4,12);
-  F(5,16);
-  F(6,19);
-  F(7,22);
-  F(8,25);
-  F(9,28);
+  F(0, 0);
+  F(1, 3);
+  F(2, 6);
+  F(3, 9);
+  F(4, 12);
+  F(5, 16);
+  F(6, 19);
+  F(7, 22);
+  F(8, 25);
+  F(9, 28);
 #undef F
 }
 
@@ -622,18 +646,24 @@ fcontract(u8 *output, limb *input_limbs) {
  *
  * On entry and exit, the absolute value of the limbs of all inputs and outputs
  * are < 2^26. */
-static void fmonty(limb *x2, limb *z2,  /* output 2Q */
-                   limb *x3, limb *z3,  /* output Q + Q' */
-                   limb *x, limb *z,    /* input Q */
-                   limb *xprime, limb *zprime,  /* input Q' */
-                   const limb *qmqp /* input Q - Q' */) {
+static void
+fmonty(limb* x2,
+       limb* z2, /* output 2Q */
+       limb* x3,
+       limb* z3, /* output Q + Q' */
+       limb* x,
+       limb* z, /* input Q */
+       limb* xprime,
+       limb* zprime, /* input Q' */
+       const limb* qmqp /* input Q - Q' */)
+{
   limb origx[10], origxprime[10], zzz[19], xx[19], zz[19], xxprime[19],
-        zzprime[19], zzzprime[19], xxxprime[19];
+    zzprime[19], zzzprime[19], xxxprime[19];
 
   memcpy(origx, x, 10 * sizeof(limb));
   fsum(x, z);
   /* |x[i]| < 2^27 */
-  fdifference(z, origx);  /* does x - z */
+  fdifference(z, origx); /* does x - z */
   /* |z[i]| < 2^27 */
 
   memcpy(origxprime, xprime, sizeof(limb) * 10);
@@ -679,7 +709,7 @@ static void fmonty(limb *x2, limb *z2,  /* output 2Q */
   freduce_degree(x2);
   freduce_coefficients(x2);
   /* |x2[i]| < 2^26 */
-  fdifference(zz, xx);  // does zz = xx - zz
+  fdifference(zz, xx); // does zz = xx - zz
   /* |zz[i]| < 2^27 */
   memset(zzz + 10, 0, sizeof(limb) * 9);
   fscalar_product(zzz, zz, 121665);
@@ -707,12 +737,13 @@ static void fmonty(limb *x2, limb *z2,  /* output 2Q */
  * and all all values in a[0..9],b[0..9] must have magnitude less than
  * INT32_MAX. */
 static void
-swap_conditional(limb a[19], limb b[19], limb iswap) {
+swap_conditional(limb a[19], limb b[19], limb iswap)
+{
   unsigned i;
-  const s32 swap = (s32) -iswap;
+  const s32 swap = (s32)-iswap;
 
   for (i = 0; i < 10; ++i) {
-    const s32 x = swap & ( ((s32)a[i]) ^ ((s32)b[i]) );
+    const s32 x = swap & (((s32)a[i]) ^ ((s32)b[i]));
     a[i] = ((s32)a[i]) ^ x;
     b[i] = ((s32)b[i]) ^ x;
   }
@@ -724,10 +755,11 @@ swap_conditional(limb a[19], limb b[19], limb iswap) {
  *   n: a little endian, 32-byte number
  *   q: a point of the curve (short form) */
 static void
-cmult(limb *resultx, limb *resultz, const u8 *n, const limb *q) {
-  limb a[19] = {0}, b[19] = {1}, c[19] = {1}, d[19] = {0};
+cmult(limb* resultx, limb* resultz, const u8* n, const limb* q)
+{
+  limb a[19] = { 0 }, b[19] = { 1 }, c[19] = { 1 }, d[19] = { 0 };
   limb *nqpqx = a, *nqpqz = b, *nqx = c, *nqz = d, *t;
-  limb e[19] = {0}, f[19] = {1}, g[19] = {0}, h[19] = {1};
+  limb e[19] = { 0 }, f[19] = { 1 }, g[19] = { 0 }, h[19] = { 1 };
   limb *nqpqx2 = e, *nqpqz2 = f, *nqx2 = g, *nqz2 = h;
 
   unsigned i, j;
@@ -741,11 +773,7 @@ cmult(limb *resultx, limb *resultz, const u8 *n, const limb *q) {
 
       swap_conditional(nqx, nqpqx, bit);
       swap_conditional(nqz, nqpqz, bit);
-      fmonty(nqx2, nqz2,
-             nqpqx2, nqpqz2,
-             nqx, nqz,
-             nqpqx, nqpqz,
-             q);
+      fmonty(nqx2, nqz2, nqpqx2, nqpqz2, nqx, nqz, nqpqx, nqpqz, q);
       swap_conditional(nqx2, nqpqx2, bit);
       swap_conditional(nqz2, nqpqz2, bit);
 
@@ -774,7 +802,8 @@ cmult(limb *resultx, limb *resultz, const u8 *n, const limb *q) {
 // Shamelessly copied from djb's code
 // -----------------------------------------------------------------------------
 static void
-crecip(limb *out, const limb *z) {
+crecip(limb* out, const limb* z)
+{
   limb z2[10];
   limb z9[10];
   limb z11[10];
@@ -787,66 +816,86 @@ crecip(limb *out, const limb *z) {
   limb t1[10];
   int i;
 
-  /* 2 */ fsquare(z2,z);
-  /* 4 */ fsquare(t1,z2);
-  /* 8 */ fsquare(t0,t1);
-  /* 9 */ fmul(z9,t0,z);
-  /* 11 */ fmul(z11,z9,z2);
-  /* 22 */ fsquare(t0,z11);
-  /* 2^5 - 2^0 = 31 */ fmul(z2_5_0,t0,z9);
+  /* 2 */ fsquare(z2, z);
+  /* 4 */ fsquare(t1, z2);
+  /* 8 */ fsquare(t0, t1);
+  /* 9 */ fmul(z9, t0, z);
+  /* 11 */ fmul(z11, z9, z2);
+  /* 22 */ fsquare(t0, z11);
+  /* 2^5 - 2^0 = 31 */ fmul(z2_5_0, t0, z9);
 
-  /* 2^6 - 2^1 */ fsquare(t0,z2_5_0);
-  /* 2^7 - 2^2 */ fsquare(t1,t0);
-  /* 2^8 - 2^3 */ fsquare(t0,t1);
-  /* 2^9 - 2^4 */ fsquare(t1,t0);
-  /* 2^10 - 2^5 */ fsquare(t0,t1);
-  /* 2^10 - 2^0 */ fmul(z2_10_0,t0,z2_5_0);
+  /* 2^6 - 2^1 */ fsquare(t0, z2_5_0);
+  /* 2^7 - 2^2 */ fsquare(t1, t0);
+  /* 2^8 - 2^3 */ fsquare(t0, t1);
+  /* 2^9 - 2^4 */ fsquare(t1, t0);
+  /* 2^10 - 2^5 */ fsquare(t0, t1);
+  /* 2^10 - 2^0 */ fmul(z2_10_0, t0, z2_5_0);
 
-  /* 2^11 - 2^1 */ fsquare(t0,z2_10_0);
-  /* 2^12 - 2^2 */ fsquare(t1,t0);
-  /* 2^20 - 2^10 */ for (i = 2;i < 10;i += 2) { fsquare(t0,t1); fsquare(t1,t0); }
-  /* 2^20 - 2^0 */ fmul(z2_20_0,t1,z2_10_0);
+  /* 2^11 - 2^1 */ fsquare(t0, z2_10_0);
+  /* 2^12 - 2^2 */ fsquare(t1, t0);
+  /* 2^20 - 2^10 */ for (i = 2; i < 10; i += 2) {
+    fsquare(t0, t1);
+    fsquare(t1, t0);
+  }
+  /* 2^20 - 2^0 */ fmul(z2_20_0, t1, z2_10_0);
 
-  /* 2^21 - 2^1 */ fsquare(t0,z2_20_0);
-  /* 2^22 - 2^2 */ fsquare(t1,t0);
-  /* 2^40 - 2^20 */ for (i = 2;i < 20;i += 2) { fsquare(t0,t1); fsquare(t1,t0); }
-  /* 2^40 - 2^0 */ fmul(t0,t1,z2_20_0);
+  /* 2^21 - 2^1 */ fsquare(t0, z2_20_0);
+  /* 2^22 - 2^2 */ fsquare(t1, t0);
+  /* 2^40 - 2^20 */ for (i = 2; i < 20; i += 2) {
+    fsquare(t0, t1);
+    fsquare(t1, t0);
+  }
+  /* 2^40 - 2^0 */ fmul(t0, t1, z2_20_0);
 
-  /* 2^41 - 2^1 */ fsquare(t1,t0);
-  /* 2^42 - 2^2 */ fsquare(t0,t1);
-  /* 2^50 - 2^10 */ for (i = 2;i < 10;i += 2) { fsquare(t1,t0); fsquare(t0,t1); }
-  /* 2^50 - 2^0 */ fmul(z2_50_0,t0,z2_10_0);
+  /* 2^41 - 2^1 */ fsquare(t1, t0);
+  /* 2^42 - 2^2 */ fsquare(t0, t1);
+  /* 2^50 - 2^10 */ for (i = 2; i < 10; i += 2) {
+    fsquare(t1, t0);
+    fsquare(t0, t1);
+  }
+  /* 2^50 - 2^0 */ fmul(z2_50_0, t0, z2_10_0);
 
-  /* 2^51 - 2^1 */ fsquare(t0,z2_50_0);
-  /* 2^52 - 2^2 */ fsquare(t1,t0);
-  /* 2^100 - 2^50 */ for (i = 2;i < 50;i += 2) { fsquare(t0,t1); fsquare(t1,t0); }
-  /* 2^100 - 2^0 */ fmul(z2_100_0,t1,z2_50_0);
+  /* 2^51 - 2^1 */ fsquare(t0, z2_50_0);
+  /* 2^52 - 2^2 */ fsquare(t1, t0);
+  /* 2^100 - 2^50 */ for (i = 2; i < 50; i += 2) {
+    fsquare(t0, t1);
+    fsquare(t1, t0);
+  }
+  /* 2^100 - 2^0 */ fmul(z2_100_0, t1, z2_50_0);
 
-  /* 2^101 - 2^1 */ fsquare(t1,z2_100_0);
-  /* 2^102 - 2^2 */ fsquare(t0,t1);
-  /* 2^200 - 2^100 */ for (i = 2;i < 100;i += 2) { fsquare(t1,t0); fsquare(t0,t1); }
-  /* 2^200 - 2^0 */ fmul(t1,t0,z2_100_0);
+  /* 2^101 - 2^1 */ fsquare(t1, z2_100_0);
+  /* 2^102 - 2^2 */ fsquare(t0, t1);
+  /* 2^200 - 2^100 */ for (i = 2; i < 100; i += 2) {
+    fsquare(t1, t0);
+    fsquare(t0, t1);
+  }
+  /* 2^200 - 2^0 */ fmul(t1, t0, z2_100_0);
 
-  /* 2^201 - 2^1 */ fsquare(t0,t1);
-  /* 2^202 - 2^2 */ fsquare(t1,t0);
-  /* 2^250 - 2^50 */ for (i = 2;i < 50;i += 2) { fsquare(t0,t1); fsquare(t1,t0); }
-  /* 2^250 - 2^0 */ fmul(t0,t1,z2_50_0);
+  /* 2^201 - 2^1 */ fsquare(t0, t1);
+  /* 2^202 - 2^2 */ fsquare(t1, t0);
+  /* 2^250 - 2^50 */ for (i = 2; i < 50; i += 2) {
+    fsquare(t0, t1);
+    fsquare(t1, t0);
+  }
+  /* 2^250 - 2^0 */ fmul(t0, t1, z2_50_0);
 
-  /* 2^251 - 2^1 */ fsquare(t1,t0);
-  /* 2^252 - 2^2 */ fsquare(t0,t1);
-  /* 2^253 - 2^3 */ fsquare(t1,t0);
-  /* 2^254 - 2^4 */ fsquare(t0,t1);
-  /* 2^255 - 2^5 */ fsquare(t1,t0);
-  /* 2^255 - 21 */ fmul(out,t1,z11);
+  /* 2^251 - 2^1 */ fsquare(t1, t0);
+  /* 2^252 - 2^2 */ fsquare(t0, t1);
+  /* 2^253 - 2^3 */ fsquare(t1, t0);
+  /* 2^254 - 2^4 */ fsquare(t0, t1);
+  /* 2^255 - 2^5 */ fsquare(t1, t0);
+  /* 2^255 - 21 */ fmul(out, t1, z11);
 }
 
 int
-curve25519_donna(u8 *mypublic, const u8 *secret, const u8 *basepoint) {
+curve25519_donna(u8* mypublic, const u8* secret, const u8* basepoint)
+{
   limb bp[10], x[10], z[11], zmone[10];
   uint8_t e[32];
   int i;
 
-  for (i = 0; i < 32; ++i) e[i] = secret[i];
+  for (i = 0; i < 32; ++i)
+    e[i] = secret[i];
   e[0] &= 248;
   e[31] &= 127;
   e[31] |= 64;

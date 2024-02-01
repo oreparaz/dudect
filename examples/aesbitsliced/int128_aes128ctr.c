@@ -1,36 +1,41 @@
 
-#include "int128.h"
 #include "common.h"
+#include "int128.h"
 
-void xor2(int128 *r, const int128 *x)
+void
+xor2(int128* r, const int128* x)
 {
   r->u64[0] ^= x->u64[0];
   r->u64[1] ^= x->u64[1];
 }
 
-void and2(int128 *r, const int128 *x)
+void
+and2(int128* r, const int128* x)
 {
   r->u64[0] &= x->u64[0];
   r->u64[1] &= x->u64[1];
 }
 
-void or2(int128 *r, const int128 *x)
+void
+or2(int128* r, const int128* x)
 {
   r->u64[0] |= x->u64[0];
   r->u64[1] |= x->u64[1];
 }
 
-void copy2(int128 *r, const int128 *x)
+void
+copy2(int128* r, const int128* x)
 {
   r->u64[0] = x->u64[0];
   r->u64[1] = x->u64[1];
 }
 
-void shufb(int128 *r, const unsigned char *l)
+void
+shufb(int128* r, const unsigned char* l)
 {
-  int128   t;
-  uint8_t *ct;
-  uint8_t *cr;
+  int128 t;
+  uint8_t* ct;
+  uint8_t* cr;
 
   copy2(&t, r);
   cr = r->u8;
@@ -53,7 +58,8 @@ void shufb(int128 *r, const unsigned char *l)
   cr[15] = ct[l[15]];
 }
 
-void shufd(int128 *r, const int128 *x, const unsigned int c)
+void
+shufd(int128* r, const int128* x, const unsigned int c)
 {
   int128 t;
 
@@ -64,68 +70,74 @@ void shufd(int128 *r, const int128 *x, const unsigned int c)
   copy2(r, &t);
 }
 
-void rshift32_littleendian(int128 *r, const unsigned int n)
+void
+rshift32_littleendian(int128* r, const unsigned int n)
 {
-  unsigned char *rp = (unsigned char *)r;
+  unsigned char* rp = (unsigned char*)r;
   uint32 t;
   t = load32_littleendian(rp);
   t >>= n;
   store32_littleendian(rp, t);
-  t = load32_littleendian(rp+4);
+  t = load32_littleendian(rp + 4);
   t >>= n;
-  store32_littleendian(rp+4, t);
-  t = load32_littleendian(rp+8);
+  store32_littleendian(rp + 4, t);
+  t = load32_littleendian(rp + 8);
   t >>= n;
-  store32_littleendian(rp+8, t);
-  t = load32_littleendian(rp+12);
+  store32_littleendian(rp + 8, t);
+  t = load32_littleendian(rp + 12);
   t >>= n;
-  store32_littleendian(rp+12, t);
+  store32_littleendian(rp + 12, t);
 }
 
-void rshift64_littleendian(int128 *r, const unsigned int n)
+void
+rshift64_littleendian(int128* r, const unsigned int n)
 {
-  unsigned char *rp = (unsigned char *)r;
+  unsigned char* rp = (unsigned char*)r;
   uint64 t;
   t = load64_littleendian(rp);
   t >>= n;
   store64_littleendian(rp, t);
-  t = load64_littleendian(rp+8);
+  t = load64_littleendian(rp + 8);
   t >>= n;
-  store64_littleendian(rp+8, t);
+  store64_littleendian(rp + 8, t);
 }
 
-void lshift64_littleendian(int128 *r, const unsigned int n)
+void
+lshift64_littleendian(int128* r, const unsigned int n)
 {
-  unsigned char *rp = (unsigned char *)r;
+  unsigned char* rp = (unsigned char*)r;
   uint64 t;
   t = load64_littleendian(rp);
   t <<= n;
   store64_littleendian(rp, t);
-  t = load64_littleendian(rp+8);
+  t = load64_littleendian(rp + 8);
   t <<= n;
-  store64_littleendian(rp+8, t);
+  store64_littleendian(rp + 8, t);
 }
 
-void toggle(int128 *r)
+void
+toggle(int128* r)
 {
   r->u64[0] ^= 0xffffffffffffffffULL;
   r->u64[1] ^= 0xffffffffffffffffULL;
 }
 
-void xor_rcon(int128 *r)
+void
+xor_rcon(int128* r)
 {
-  unsigned char *rp = (unsigned char *)r;
+  unsigned char* rp = (unsigned char*)r;
   uint32 t;
-  t = load32_littleendian(rp+12);
+  t = load32_littleendian(rp + 12);
   t ^= 0xffffffff;
-  store32_littleendian(rp+12, t);
+  store32_littleendian(rp + 12, t);
 }
 
-void add_uint32_big(int128 *r, uint32 x)
+void
+add_uint32_big(int128* r, uint32 x)
 {
-  unsigned char *rp = (unsigned char *)r;
+  unsigned char* rp = (unsigned char*)r;
   uint32 t;
-  t = load32_littleendian(rp+12);
+  t = load32_littleendian(rp + 12);
   t += x;
-  store32_littleendian(rp+12, t);
+  store32_littleendian(rp + 12, t);
 }

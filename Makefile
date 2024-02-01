@@ -1,5 +1,11 @@
 all: dut_aes32 dut_aesbitsliced dut_donna dut_donnabad dut_simple
 
+SRC_DIR = src
+SOURCES = $(wildcard $(SRC_DIR)/*.h)
+EXAMPLE_DIR = examples
+EXAMPLE_HEADERS = $(wildcard $(EXAMPLE_DIR)/*/*.h)
+EXAMPLE_SOURCES = $(wildcard $(EXAMPLE_DIR)/*/*.c)
+
 OBJS_AES32 = examples/aes32/rijndael-alg-fst.o
 OBJS_DONNA = examples/donna/curve25519-donna.o
 OBJS_DONNABAD = examples/donnabad/curve25519-donnabad.o
@@ -42,6 +48,10 @@ dut_simple: examples/simple/example.c
 
 clean:
 	rm -f $(OBJS_AES32) $(OBJS_AESBITSLICED) $(OBJS_DONNA) $(OBJS_DONNABAD) dudect_* *.exe a.out
+
+format: $(SOURCES) $(EXAMPLE_HEADERS) $(EXAMPLE_SOURCES)
+	clang-format -i $^
+
 
 test: all
 	python test.py
