@@ -200,7 +200,11 @@ static void t_init(ttest_ctx_t *ctx) {
   }
 }
 
-static int cmp(const int64_t *a, const int64_t *b) { return (int)(*a - *b); }
+static int cmp(const int64_t *a, const int64_t *b) {
+    if (*a == *b)
+        return 0;
+    return (*a > *b) ? 1 : -1;
+}
 
 static int64_t percentile(int64_t *a_sorted, double which, size_t size) {
   size_t array_position = (size_t)((double)size * (double)which);
