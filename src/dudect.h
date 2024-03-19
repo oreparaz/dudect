@@ -71,8 +71,16 @@ extern "C" {
 
 #include <stddef.h>
 #include <stdint.h>
+
+#if defined __x86_64__
 #include <emmintrin.h>
 #include <x86intrin.h>
+#elif defined __APPLE__
+#include <mach/mach_time.h>
+#include <stdatomic.h>
+#else
+#include <time.h>
+#endif
 
 #ifdef DUDECT_VISIBLITY_STATIC
 #define DUDECT_VISIBILITY static
@@ -266,8 +274,10 @@ uint8_t randombit(void) {
   return (ret & 1);
 }
 
+#if defined(__x86_64__)
+
 /*
- Returns current CPU tick count from *T*ime *S*tamp *C*ounter.
+ Returns current CPU tick count from x86_64 *T*ime *S*tamp *C*ounter.
 
  To enforce CPU to issue RDTSC instruction where we want it to, we put a `mfence` instruction before
  issuing `rdtsc`, which should make all memory load/ store operations, prior to RDTSC, globally visible.
@@ -282,6 +292,47 @@ static inline int64_t cpucycles(void) {
   _mm_mfence();
   return (int64_t)__rdtsc();
 }
+
+#elif defined(__aarch64__) && defined(__linux__)
+
+/*
+  Returns current CPU cycle count from aarch64 *P*erformance *M*onitors *C*ycle Counter (PMCCNTR_EL0).
+
+  To enforce CPU to complete all pending memory access operations, appearing before PMCCTR_EL0, we issue a
+  *D*ata *S*ynchronization *B*arrier instruction right before reading CPU cycle counter.
+
+  Note, issuing PMCCTR_EL0 instruction from the userspace will probably result in panicing with
+  a message "illegal instruction executed". So we've to install a Linux Kernel Module. I've tested the
+  LKM @ https://github.com/jerinjacobk/armv8_pmu_cycle_counter_el0 and it works fine.
+
+  See PMCCTR_EL0 documentation @ https://developer.arm.com/documentation/ddi0595/2021-09/External-Registers/PMCCNTR-EL0--Performance-Monitors-Cycle-Counter?lang=en
+  See DSB documentation @ https://developer.arm.com/documentation/ddi0596/2021-12/Base-Instructions/DSB--Data-Synchronization-Barrier-
+
+  Also see https://github.com/itzmeanjan/criterion-cycles-per-byte/blob/a270a496/src/lib.rs#L61-L74
+*/
+static inline int64_t cpucycles(void) {
+  uint64_t val = 0;
+  __asm__ volatile("dsb sy; mrs %0, pmccntr_el0" : "=r"(val));
+  return (int64_t)val;
+}
+
+#elif defined(__APPLE__)
+
+/*
+  Returns the number of "mach time units" elapsed since system startup, on non-x86_64 Apple targets.
+
+  See https://github.com/google/benchmark/blob/4682db08/src/cycleclock.h#L63-L73
+*/
+static inline int64_t cpucycles(void) {
+  atomic_thread_fence(memory_order_seq_cst);
+  return (int64_t)mach_absolute_time();
+}
+
+#else
+
+#error "`dudect` doesn't yet support your OS/ CPU."
+
+#endif
 
 // threshold values for Welch's t-test
 #define t_threshold_bananas 500 // test failed, with overwhelming probability
